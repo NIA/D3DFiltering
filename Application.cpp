@@ -58,11 +58,13 @@ namespace
 
 Application::Application() :
     d3d(NULL), device(NULL), window(WINDOW_SIZE, WINDOW_SIZE), camera(5, 0.68f, 0), // Constants selected for better view of the scene
-    point_light_enabled(true), ambient_light_enabled(true), plane(NULL), light_source(NULL), point_light_position(SHADER_VAL_POINT_POSITION)
-{
+    point_light_enabled(true), ambient_light_enabled(true), point_light_position(SHADER_VAL_POINT_POSITION),
+    plane(NULL), light_source(NULL), target_texture(NULL), target_plane(NULL)
+    {
     try
     {
         init_device();
+        target_texture = new Texture(device, 100, 100);
     }
     // using catch(...) because every caught exception is rethrown
     catch(...)
@@ -128,8 +130,6 @@ inline void Application::draw_model(Model *model, float time, bool shadow)
 
 void Application::render()
 {
-    check_render( device->Clear( 0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, BACKGROUND_COLOR, 1.0f, 0 ) );
-    
     // Begin the scene
     check_render( device->BeginScene() );
     // Setting constants
@@ -151,6 +151,9 @@ void Application::render()
     set_shader_matrix( SHADER_REG_SHADOW_PROJ_MX, shadow_proj_matrix        );
     set_shader_vector( SHADER_REG_SHADOW_ATTENUATION, SHADER_VAL_SHADOW_ATTENUATION );
 
+    // Set render target
+    target_texture->set_as_target();
+    check_render( device->Clear( 0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, BACKGROUND_COLOR, 1.0f, 0 ) );
     // Draw Light Source
     draw_model( light_source, time, false );
     // Draw Plane
@@ -176,6 +179,12 @@ void Application::render()
     {
         draw_model( *iter, time, false );
     }
+    // Set render target
+    target_texture->unset_as_target();
+
+    // Draw target plane
+    draw_model( target_plane, time, false );
+
     // End the scene
     check_render( device->EndScene() );
     
@@ -269,6 +278,8 @@ void Application::run()
         throw NoPlaneError();
     if( light_source == NULL )
         throw NoLightSourceModelError();
+    if( target_plane == NULL )
+        throw NoTargetPlaneError();
 
     window.show();
     window.update();
@@ -307,11 +318,19 @@ void Application::toggle_wireframe()
         set_render_state( D3DRS_FILLMODE, D3DFILL_SOLID );
     }
 }
-
+void Application::delete_target_plane()
+{
+    if( target_plane != NULL)
+        delete target_plane;
+    target_plane = NULL;
+}
 void Application::release_interfaces()
 {
     release_interface( d3d );
     release_interface( device );
+    delete_target_plane();
+    if( target_texture != NULL)
+        delete target_texture;
 }
 
 Application::~Application()

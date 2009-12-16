@@ -152,7 +152,7 @@ unsigned MorphingModel::set_constants(D3DXVECTOR4 *out_data, unsigned buffer_siz
     return MORPHING_CONSTANTS_USED;
 }
 
-// ------------------------------------------ Plane --------------------------------------------------------
+// ------------------------------------------- Plane ----------------------------------------------------------------
 
 Plane::Plane( IDirect3DDevice9 *device, D3DPRIMITIVETYPE primitive_type, VertexShader &vertex_shader, PixelShader &pixel_shader, const Vertex *vertices,
               unsigned vertices_count, const Index *indices, unsigned indices_count, unsigned primitives_count,
@@ -201,6 +201,8 @@ D3DXMATRIX Plane::get_projection_matrix(const D3DXVECTOR3 light_position) const
     return -( M1 - M2 + M3 + Mz );
 }
 
+// --------------------------------------------- Light Source --------------------------------------------------------
+
 LightSource::LightSource( IDirect3DDevice9 *device, D3DPRIMITIVETYPE primitive_type, VertexShader &vertex_shader, PixelShader &pixel_shader,
                           const Vertex *vertices, unsigned vertices_count, const Index *indices, unsigned indices_count, unsigned primitives_count,
                           D3DXVECTOR3 position, D3DXVECTOR3 rotation, float radius )
@@ -214,4 +216,15 @@ unsigned LightSource::set_constants(D3DXVECTOR4 *out_data, unsigned buffer_size)
     _ASSERT( buffer_size >= MORPHING_CONSTANTS_USED); // enough space?
     out_data[0] = D3DXVECTOR4(radius, radius, radius, radius);
     return LIGHT_SOURCE_CONSTANTS_USED;
+}
+
+// --------------------------------------------- TexturedModel -------------------------------------------------------
+
+TexturedModel::TexturedModel( IDirect3DDevice9 *device, D3DPRIMITIVETYPE primitive_type, VertexShader &vertex_shader, PixelShader &pixel_shader,
+                              const TexturedVertex *vertices, unsigned int vertices_count, const Index *indices, unsigned int indices_count,
+                              unsigned int primitives_count, D3DXVECTOR3 position, D3DXVECTOR3 rotation, Texture &texture)
+: Model(device, primitive_type, vertex_shader, vertex_shader, pixel_shader, pixel_shader, TexturedVertex::get_declaration(device), sizeof(TexturedVertex),
+        vertices, vertices_count, indices, indices_count, primitives_count, position, rotation),
+  texture(texture)
+{
 }

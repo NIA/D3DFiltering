@@ -29,6 +29,9 @@ private:
     Plane *plane;
     LightSource *light_source;
 
+    Texture *target_texture;
+    TexturedModel *target_plane;
+
     Camera camera;
 
     D3DXVECTOR3 point_light_position;
@@ -74,6 +77,7 @@ private:
     void render();
 
     // Deinitialization steps:
+    void delete_target_plane();
     void release_interfaces();
 
 public:
@@ -83,6 +87,15 @@ public:
     void add_model(Model &model);
     void set_plane(Plane &_plane) { plane = &_plane; }
     void set_light_source_model(LightSource &_light_source) { light_source = &_light_source; }
+    void create_target_plane(VertexShader &vertex_shader, PixelShader &pixel_shader,
+                             const TexturedVertex *vertices, unsigned int vertices_count,
+                             const Index *indices, unsigned int indices_count)
+    {
+        delete_target_plane();
+        target_plane = new TexturedModel(device, D3DPT_TRIANGLELIST, vertex_shader, pixel_shader,
+                                         vertices, vertices_count, indices, indices_count, indices_count/VERTICES_PER_TRIANGLE,
+                                         D3DXVECTOR3(0, 0, 0), D3DXVECTOR3(0, 0, 0), *target_texture);
+    }
     void remove_model(Model &model);
     void run();
 

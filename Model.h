@@ -171,9 +171,7 @@ public:
     TexturedModel(  IDirect3DDevice9 *device,
                     D3DPRIMITIVETYPE primitive_type,
                     VertexShader &vertex_shader,
-                    VertexShader &shadow_vertex_shader,
                     PixelShader &pixel_shader,
-                    PixelShader &shadow_pixel_shader,
                     const TexturedVertex *vertices,
                     unsigned vertices_count,
                     const Index *indices,
@@ -181,11 +179,9 @@ public:
                     unsigned primitives_count,
                     D3DXVECTOR3 position,
                     D3DXVECTOR3 rotation,
-                    float final_radius,
                     Texture &texture);
 
     // Overrides:
-    virtual void set_time(float time);
     virtual void set_textures(bool shadow)
     {
         if(shadow)
@@ -193,5 +189,4 @@ public:
         else
             texture.set();
     }
-    virtual unsigned set_constants(D3DXVECTOR4 *out_data, unsigned buffer_size) const; // returns number of constant registers used
 };

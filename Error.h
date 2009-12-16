@@ -96,6 +96,11 @@ class TextureError : public RuntimeError
 public:
     TextureError() : RuntimeError( _T("Error while creating, configuring or setting texture") ) {}
 };
+class NoTargetPlaneError : public RuntimeError
+{
+public:
+    NoTargetPlaneError() : RuntimeError( _T("Error: attempting to run application when no target plane created") ) {}
+};
 
 inline void check_render( HRESULT res )
 {

@@ -13,6 +13,8 @@ namespace
     const char *MORPHING_SHADOW_SHADER_FILENAME = "morphing_shadow.vsh";
     const char *PLANE_SHADER_FILENAME = "plane.vsh";
     const char *LIGHT_SOURCE_SHADER_FILENAME = "light_source.vsh";
+    const char *TARGET_VERTEX_SHADER_FILENAME = "target.vsh";
+    const char *TARGET_PIXEL_SHADER_FILENAME = "target.psh";
 
     const D3DCOLOR colors[] =
     {
@@ -64,7 +66,9 @@ INT WINAPI wWinMain( HINSTANCE, HINSTANCE, LPWSTR, INT )
             VertexShader morphing_shadow_shader(app.get_device(), MORPHING_SHADOW_SHADER_FILENAME);
             VertexShader plane_shader(app.get_device(), PLANE_SHADER_FILENAME);
             VertexShader light_source_shader(app.get_device(), LIGHT_SOURCE_SHADER_FILENAME);
+            VertexShader target_vertex_shader(app.get_device(), TARGET_VERTEX_SHADER_FILENAME);
             PixelShader  no_pixel_shader(app.get_device());
+            PixelShader  target_pixel_shader(app.get_device(), TARGET_PIXEL_SHADER_FILENAME);
             
             // -------------------------- C y l i n d e r -----------------------
 
@@ -166,12 +170,24 @@ INT WINAPI wWinMain( HINSTANCE, HINSTANCE, LPWSTR, INT )
                                       D3DXVECTOR3(0,0,0),
                                       LIGHT_SOURCE_RADIUS);
 
+            // -------------------------- Target plane --------------------------
+            TexturedVertex target_vertices[] = 
+            {
+                TexturedVertex( D3DXVECTOR3(-1,-1,0), D3DXVECTOR3(0,0,0), 0, 1),
+                TexturedVertex( D3DXVECTOR3( 1,-1,0), D3DXVECTOR3(0,0,0), 1, 1),
+                TexturedVertex( D3DXVECTOR3(-1, 1,0), D3DXVECTOR3(0,0,0), 0, 0),
+                TexturedVertex( D3DXVECTOR3( 1, 1,0), D3DXVECTOR3(0,0,0), 1, 0),
+            };
+            Index target_indices[] = { 0, 1, 2, 1, 2, 3 };
             // ---------------------------- a d d i n g -------------------------
             app.add_model(cylinder1);
             app.add_model(cylinder2);
             app.add_model(sphere);
             app.set_plane(plane);
             app.set_light_source_model(light_source);
+            app.create_target_plane(target_vertex_shader, target_pixel_shader,
+                                    target_vertices, array_size(target_vertices),
+                                    target_indices, array_size(target_indices));
 
             app.run();
 
