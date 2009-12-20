@@ -64,6 +64,16 @@ private:
     {
         set_shader_const(reg, D3DXCOLOR(color), 1);
     }
+    // Wrappers for SetPixelShaderConstantF:
+    void set_pixel_shader_const(unsigned reg, const float *data, unsigned vector4_count)
+    {
+        check_render( device->SetPixelShaderConstantF(reg, data, vector4_count) );
+    }
+    void set_pixel_shader_float(unsigned reg, float f)
+    {
+        set_pixel_shader_const(reg, D3DXVECTOR4(f, f, f, f), 1);
+    }
+
     // Wrapper for SetRenderState:
     void set_render_state( D3DRENDERSTATETYPE state, DWORD value )
     {

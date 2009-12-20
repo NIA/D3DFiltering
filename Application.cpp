@@ -13,9 +13,11 @@ namespace
     const float       POINT_MOVING_STEP = 0.03f;
     const char       *SHADOW_SHADER_FILENAME = "shadow.vsh";
     const DWORD       STENCIL_REF_VALUE = 50;
+    const unsigned    FILTER_SIZE = 3;
+    const unsigned    FILTER_REGS_COUNT = 5;
 
 
-    //---------------- SHADER CONSTANTS ---------------------------
+    //---------------- VERTEX SHADER CONSTANTS ---------------------------
     //    c0-c3 is the view matrix
     const unsigned    SHADER_REG_VIEW_MX = 0;
     //    c4-c7 is the first bone matrix for SKINNING
@@ -54,17 +56,49 @@ namespace
     //    c35 are attenuation constants
     const unsigned    SHADER_REG_SHADOW_ATTENUATION = 35;
     const D3DXVECTOR3 SHADER_VAL_SHADOW_ATTENUATION  (0.8f, 0, 0.1f);
+    //    c40 - c44 are filter cells shift coordinates of ... (needed to be multiplied by 1/w and 1/h)
+    const unsigned    SHADER_REG_FILTER_TEXCOORD_SHIFT = 40;
+    const D3DXVECTOR3 SHADER_VAL_FILTER_TEXCOORD_SHIFT[FILTER_REGS_COUNT] =
+    {
+        D3DXVECTOR3(  0.5f, -0.5f, 0 ),
+        D3DXVECTOR3( -0.5f,  0.5f, 0 ),
+        D3DXVECTOR3(  0.5f,  0.5f, 0 ),
+        D3DXVECTOR3(  1.5f,  0.5f, 0 ),
+        D3DXVECTOR3(  0.5f,  1.5f, 0 ),
+    };
+
+    const float       FILTER[FILTER_SIZE*FILTER_SIZE] = 
+    {
+         0,  1,  0,
+        -1,  0,  1,
+         0, -1,  0,
+         //0,  0,  0,
+         //0,  1,  0,
+         //0,  0,  0,
+    };
+    //---------------- VERTEX SHADER CONSTANTS ---------------------------
+    //    c0 - c4 are filter values of ...
+    const unsigned    SHADER_REG_FILTER = 0;
+    const unsigned    SHADER_VAL_INDEX_FILTER[FILTER_REGS_COUNT] =
+    {
+        1, // ... ( 0, -1)
+        3, // ... (-1,  0)
+        4, // ... ( 0,  0)
+        5, // ... ( 1,  0)
+        7, // ... ( 0,  1)
+    };
 }
 
-Application::Application() :
-    d3d(NULL), device(NULL), window(WINDOW_SIZE, WINDOW_SIZE), camera(5, 0.68f, 0), // Constants selected for better view of the scene
-    point_light_enabled(true), ambient_light_enabled(true), point_light_position(SHADER_VAL_POINT_POSITION),
-    plane(NULL), light_source(NULL), target_texture(NULL), target_plane(NULL)
-    {
+Application::Application()
+: d3d(NULL), device(NULL), window(WINDOW_SIZE, WINDOW_SIZE), camera(5, 0.68f, 0), // Constants selected for better view of the scene
+  point_light_enabled(true), ambient_light_enabled(true), point_light_position(SHADER_VAL_POINT_POSITION),
+  plane(NULL), light_source(NULL), target_texture(NULL), target_plane(NULL)
+{
     try
     {
         init_device();
-        target_texture = new Texture(device, 100, 100);
+        RECT rect = window.get_client_rect();
+        target_texture = new Texture(device, rect.right - rect.left, rect.bottom - rect.top, FILTER_REGS_COUNT);
     }
     // using catch(...) because every caught exception is rethrown
     catch(...)
@@ -139,6 +173,8 @@ void Application::render()
     D3DCOLOR point_color = point_light_enabled ? SHADER_VAL_POINT_COLOR : BLACK;
     D3DXMATRIX shadow_proj_matrix = plane->get_projection_matrix(point_light_position);
 
+    D3DXVECTOR3 texcoord_multiplier (1.0f/target_texture->get_float_width(), 1.0f/target_texture->get_float_height(), 0);
+
     set_shader_matrix( SHADER_REG_VIEW_MX,        camera.get_matrix()       );
     set_shader_float ( SHADER_REG_DIFFUSE_COEF,   SHADER_VAL_DIFFUSE_COEF   );
     set_shader_color ( SHADER_REG_AMBIENT_COLOR,  ambient_color             );
@@ -150,6 +186,16 @@ void Application::render()
     set_shader_point ( SHADER_REG_EYE,            camera.get_eye()          );
     set_shader_matrix( SHADER_REG_SHADOW_PROJ_MX, shadow_proj_matrix        );
     set_shader_vector( SHADER_REG_SHADOW_ATTENUATION, SHADER_VAL_SHADOW_ATTENUATION );
+    
+    for( unsigned i = 0; i < FILTER_REGS_COUNT; ++i )
+    {
+        D3DXVECTOR3 texcoord_shift( 0, 0, 0 );
+        texcoord_shift.x = SHADER_VAL_FILTER_TEXCOORD_SHIFT[i].x*texcoord_multiplier.x;
+        texcoord_shift.y = SHADER_VAL_FILTER_TEXCOORD_SHIFT[i].x*texcoord_multiplier.y;
+        set_shader_vector( SHADER_REG_FILTER_TEXCOORD_SHIFT + i, texcoord_shift );
+
+        set_pixel_shader_float( SHADER_REG_FILTER + i, FILTER[ SHADER_VAL_INDEX_FILTER[i] ] );
+    }
 
     // Set render target
     target_texture->set_as_target();

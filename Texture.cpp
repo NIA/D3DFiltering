@@ -1,7 +1,7 @@
 #include "Texture.h"
 
-Texture::Texture(IDirect3DDevice9 *device, unsigned width, unsigned height)
-: device(device), texture(NULL)
+Texture::Texture(IDirect3DDevice9 *device, unsigned width, unsigned height, unsigned samplers_count)
+: device(device), texture(NULL), width(width), height(height), samplers_count(samplers_count)
 {
     check_texture( D3DXCreateTexture(device, width, height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_R8G8B8, D3DPOOL_DEFAULT, &texture) );
     check_texture( device->SetTextureStageState(0, D3DTSS_COLOROP,  D3DTOP_MODULATE) );
@@ -12,7 +12,10 @@ Texture::Texture(IDirect3DDevice9 *device, unsigned width, unsigned height)
 
 void Texture::set()
 {
-    check_texture( device->SetTexture(0, texture) );
+    for( unsigned i = 0; i < samplers_count; ++i )
+    {
+        check_texture( device->SetTexture(i, texture) );
+    }
 }
 
 void Texture::set_as_target()

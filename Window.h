@@ -13,6 +13,8 @@ public:
     Window(int width, int height);
     void show() const;
     void update() const;
+    RECT get_client_rect() const;
+
     static LRESULT WINAPI MsgProc( HWND, UINT, WPARAM, LPARAM );
 
     inline operator HWND() { return this->hwnd; }

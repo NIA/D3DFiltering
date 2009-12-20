@@ -50,6 +50,13 @@ void Window::update() const
     UpdateWindow( *this );
 }
 
+RECT Window::get_client_rect() const
+{
+    RECT rect;
+    GetClientRect(hwnd, &rect);
+    return rect;
+}
+
 void Window::unregister_class()
 {
     UnregisterClass( WINDOW_CLASS, window_class.hInstance );
