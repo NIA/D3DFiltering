@@ -40,7 +40,7 @@ namespace
 
         Index levels_count = params.vertical ? CYLINDER_EDGES_PER_HEIGHT + 1 : CYLINDER_EDGES_PER_CAP;
         Index levels_or_steps_count = params.radial_strips ? CYLINDER_EDGES_PER_BASE : levels_count;
-        _ASSERT(params.colors_count != 0);
+        _ASSERT(0 != params.colors_count);
         Index part_size = (levels_or_steps_count + params.colors_count)/params.colors_count; // `+ colors_count' just for excluding a bound of interval [0, colors_count)
         
         D3DXVECTOR3 normal_if_horisontal = D3DXVECTOR3(0, 0, params.top ? 1.0f : -1.0f);
@@ -85,7 +85,7 @@ namespace
                     continue;
                 }
                 params.res_vertices[vertex] = SkinningVertex(position, color, weight, normal);
-                if( level != 0 )
+                if( 0 != level )
                 {
                     params.res_indices[index++] = vertex - CYLINDER_EDGES_PER_BASE; // from previous level
                     params.res_indices[index++] = vertex;                           // from current level
@@ -122,11 +122,11 @@ void cylinder( float radius, float height,
     Index vertex = 0; // current vertex
     DWORD index = 0; // current index
     
-    _ASSERT(res_vertices != NULL);
-    _ASSERT(res_indices != NULL);
-    _ASSERT(CYLINDER_EDGES_PER_BASE != 0);
-    _ASSERT(CYLINDER_EDGES_PER_HEIGHT != 0);
-    _ASSERT(CYLINDER_EDGES_PER_CAP != 0);
+    _ASSERT(NULL != res_vertices);
+    _ASSERT(NULL != res_indices);
+    _ASSERT(0 != CYLINDER_EDGES_PER_BASE);
+    _ASSERT(0 != CYLINDER_EDGES_PER_HEIGHT);
+    _ASSERT(0 != CYLINDER_EDGES_PER_CAP);
 
     GENERATION_PARAMS params;
     // output buffers

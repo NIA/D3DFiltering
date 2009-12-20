@@ -133,8 +133,10 @@ Application::Application()
 void Application::init_device()
 {
     d3d = Direct3DCreate9( D3D_SDK_VERSION );
-    if( d3d == NULL )
+    if( NULL == d3d )
+    {
         throw D3DInitError();
+    }
 
     // Set up the structure used to create the device
     D3DPRESENT_PARAMETERS present_parameters;
@@ -351,12 +353,18 @@ void Application::process_key(unsigned code)
 
 void Application::run()
 {
-    if( plane == NULL )
+    if( NULL == plane )
+    {
         throw NoPlaneError();
-    if( light_source == NULL )
+    }
+    if( NULL == light_source )
+    {
         throw NoLightSourceModelError();
-    if( target_plane == NULL )
+    }
+    if( NULL == target_plane )
+    {
         throw NoTargetPlaneError();
+    }
 
     window.show();
     window.update();
@@ -364,11 +372,11 @@ void Application::run()
     // Enter the message loop
     MSG msg;
     ZeroMemory( &msg, sizeof( msg ) );
-    while( msg.message != WM_QUIT )
+    while( WM_QUIT != msg.message )
     {
         if( PeekMessage( &msg, NULL, 0U, 0U, PM_REMOVE ) )
         {
-            if( msg.message == WM_KEYDOWN )
+            if( WM_KEYDOWN == msg.message )
             {
                 process_key( static_cast<unsigned>( msg.wParam ) );
             }
@@ -377,7 +385,9 @@ void Application::run()
             DispatchMessage( &msg );
         }
         else
+        {
             render();
+        }
     }
 }
 
@@ -397,8 +407,10 @@ void Application::toggle_wireframe()
 }
 void Application::delete_target_plane()
 {
-    if( target_plane != NULL)
+    if( NULL != target_plane)
+    {
         delete target_plane;
+    }
     target_plane = NULL;
 }
 
@@ -407,8 +419,10 @@ void Application::release_interfaces()
     release_interface( d3d );
     release_interface( device );
     delete_target_plane();
-    if( target_texture != NULL)
+    if( NULL != target_texture)
+    {
         delete target_texture;
+    }
 }
 
 Application::~Application()

@@ -28,31 +28,39 @@ Model::Model(   IDirect3DDevice9 *device, D3DPRIMITIVETYPE primitive_type,
   vertex_shader(vertex_shader), shadow_vertex_shader(shadow_vertex_shader), pixel_shader(pixel_shader), shadow_pixel_shader(shadow_pixel_shader),
   vertex_declaration(vertex_declaration), vertex_size(vertex_size)
 {
-    _ASSERT(vertices != NULL);
-    _ASSERT(indices != NULL);
+    _ASSERT(NULL != vertices);
+    _ASSERT(NULL != indices);
     try
     {
         const unsigned vertices_size = vertices_count*vertex_size;
         const unsigned indices_size = indices_count*sizeof(indices[0]);
 
         if(FAILED( device->CreateVertexBuffer( vertices_size, D3DUSAGE_WRITEONLY, 0, D3DPOOL_DEFAULT, &vertex_buffer, NULL ) ))
+        {
             throw VertexBufferInitError();
+        }
         
 
         if(FAILED( device->CreateIndexBuffer( indices_size, D3DUSAGE_WRITEONLY, INDEX_FORMAT, D3DPOOL_DEFAULT, &index_buffer, NULL ) ))
+        {
             throw IndexBufferInitError();
+        }
 
         // fill the vertex buffer.
         VOID* vertices_to_fill;
         if(FAILED( vertex_buffer->Lock( 0, vertices_size, &vertices_to_fill, 0 ) ))
+        {
             throw VertexBufferFillError();
+        }
         memcpy( vertices_to_fill, vertices, vertices_size );
         vertex_buffer->Unlock();
 
         // fill the index buffer.
         VOID* indices_to_fill;
         if(FAILED( index_buffer->Lock( 0, indices_size, &indices_to_fill, 0 ) ))
+        {
             throw IndexBufferFillError();
+        }
         memcpy( indices_to_fill, indices, indices_size );
         index_buffer->Unlock();
     
@@ -118,7 +126,9 @@ SkinningModel::SkinningModel(IDirect3DDevice9 *device, D3DPRIMITIVETYPE primitiv
 {
     _ASSERT( BONES_COUNT <= sizeof(D3DXVECTOR4) ); // to fit weights into vertex shader register
     for(unsigned i = 0; i < BONES_COUNT; ++i)
+    {
         bones[i] = rotate_x_matrix(0.0f);
+    }
 }
 
 void SkinningModel::set_time(float time)
@@ -155,7 +165,7 @@ void MorphingModel::set_time(float time)
 unsigned MorphingModel::set_constants(D3DXVECTOR4 *out_data, unsigned buffer_size) const
 // returns number of constant registers used
 {
-    _ASSERT( buffer_size >= MORPHING_CONSTANTS_USED); // enough space?
+    _ASSERT( MORPHING_CONSTANTS_USED <= buffer_size); // enough space?
     out_data[0] = D3DXVECTOR4(final_radius, final_radius, final_radius, final_radius);
     out_data[1] = D3DXVECTOR4(morphing_param, morphing_param, morphing_param, morphing_param);
     return MORPHING_CONSTANTS_USED;
@@ -169,7 +179,7 @@ Plane::Plane( IDirect3DDevice9 *device, D3DPRIMITIVETYPE primitive_type, VertexS
               : Model(device, primitive_type, vertex_shader, vertex_shader, pixel_shader, pixel_shader, Vertex::get_declaration(device), sizeof(Vertex), vertices, vertices_count, indices, indices_count,
         primitives_count, position, rotation)
 {
-    _ASSERT( vertices_count > 0 );
+    _ASSERT( 0 < vertices_count );
     D3DXVECTOR4 normal_4d = vertices[0].normal;
     D3DXMATRIX rotation_mx = rotate_matrix(rotation);
     D3DXVec4Transform( &normal_4d, &normal_4d, &rotation_mx );
@@ -222,7 +232,7 @@ LightSource::LightSource( IDirect3DDevice9 *device, D3DPRIMITIVETYPE primitive_t
 unsigned LightSource::set_constants(D3DXVECTOR4 *out_data, unsigned buffer_size) const
 // returns number of constant registers used
 {
-    _ASSERT( buffer_size >= MORPHING_CONSTANTS_USED); // enough space?
+    _ASSERT( MORPHING_CONSTANTS_USED <= buffer_size); // enough space?
     out_data[0] = D3DXVECTOR4(radius, radius, radius, radius);
     return LIGHT_SOURCE_CONSTANTS_USED;
 }

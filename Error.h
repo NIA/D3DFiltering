@@ -105,17 +105,23 @@ public:
 inline void check_render( HRESULT res )
 {
     if( FAILED(res) )
+    {
         throw RenderError();
+    }
 }
 
 inline void check_state( HRESULT res )
 {
     if( FAILED(res) )
+    {
         throw RenderStateError();
+    }
 }
 
 inline void check_texture( HRESULT res )
 {
     if( FAILED(res) )
+    {
         throw TextureError();
+    }
 }

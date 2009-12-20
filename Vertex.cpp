@@ -7,9 +7,11 @@ const D3DFORMAT INDEX_FORMAT = D3DFMT_INDEX32;
 VertexDeclaration::VertexDeclaration(IDirect3DDevice9 *device, const D3DVERTEXELEMENT9* vertex_declaration)
 : device(device), vertex_decl(NULL)
 {
-    _ASSERT(device != NULL);
+    _ASSERT(NULL != device);
     if( FAILED( device->CreateVertexDeclaration(vertex_declaration, &vertex_decl) ) )
+    {
         throw VertexDeclarationInitError();
+    }
 }
 
 void VertexDeclaration::set()

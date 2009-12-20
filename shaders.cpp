@@ -7,9 +7,13 @@ VertexShader::VertexShader(IDirect3DDevice9 *device, const char *shader_filename
     try
     {
         if( FAILED( D3DXAssembleShaderFromFileA( shader_filename, NULL, NULL, NULL, &shader_buffer, NULL ) ) )
+        {
             throw VertexShaderAssemblyError();
+        }
         if( FAILED( device->CreateVertexShader( (DWORD*) shader_buffer->GetBufferPointer(), &shader ) ) )
+        {
             throw VertexShaderInitError();
+        }
     }
     // using catch(...) because every caught exception is rethrown
     catch(...)
@@ -35,15 +39,19 @@ VertexShader::~VertexShader()
 PixelShader::PixelShader(IDirect3DDevice9 *device, const char *shader_filename)
 : device(device), shader(NULL)
 {
-    if( shader_filename != NULL )
+    if( NULL != shader_filename )
     {
         ID3DXBuffer * shader_buffer = NULL;
         try
         {
             if( FAILED( D3DXAssembleShaderFromFileA( shader_filename, NULL, NULL, NULL, &shader_buffer, NULL ) ) )
+            {
                 throw PixelShaderAssemblyError();
+            }
             if( FAILED( device->CreatePixelShader( (DWORD*) shader_buffer->GetBufferPointer(), &shader ) ) )
+            {
                 throw PixelShaderInitError();
+            }
         }
         // using catch(...) because every caught exception is rethrown
         catch(...)

@@ -6,11 +6,11 @@ void tessellate(const Vertex *src_vertices, const Index *src_indices, DWORD src_
 // Writes data into arrays given as `res_vertices' and `res_indices',
 //   assuming that there are already `res_vertices_offset' vertices before `res_vertices' pointer.
 {
-    _ASSERT(src_vertices != NULL);
-    _ASSERT(src_indices != NULL);
-    _ASSERT(res_vertices != NULL);
-    _ASSERT(res_indices != NULL);
-    _ASSERT(tesselate_degree != 0);
+    _ASSERT(NULL != src_vertices);
+    _ASSERT(NULL != src_indices);
+    _ASSERT(NULL != res_vertices);
+    _ASSERT(NULL != res_indices);
+    _ASSERT(0 != tesselate_degree);
     // i1, i2 i3 are indices of source triangle vertices
     const Index i1 = src_indices[src_index_offset];
     const Index i2 = src_indices[src_index_offset + 1];
@@ -34,7 +34,7 @@ void tessellate(const Vertex *src_vertices, const Index *src_indices, DWORD src_
                                              + static_cast<FLOAT>(column)*step_right,
                                            color,
                                            normal);
-            if( column != 0 ) // not first coumn
+            if( 0 != column ) // not first coumn
             {
                 // add outer triangle
                 add_triangle( vertex, vertex - 1, vertex - line - 1, res_indices, index, res_vertices_offset );

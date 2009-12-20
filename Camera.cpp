@@ -34,38 +34,44 @@ void Camera::set_position(float rho, float theta, float phi, bool update_mx)
 {
     eye_spheric = D3DXVECTOR3(rho, theta, phi);
     if( update_mx )
+    {
         update_matrices();
+    }
 }
 
 void Camera::set_at_position(float x, float y, float z, bool update_mx)
 {
     at = D3DXVECTOR3(x, y, z);
     if( update_mx )
+    {
         update_matrices();
+    }
 }
 
 void Camera::set_up_direction(float x, float y, float z, bool update_mx)
 {
     up = D3DXVECTOR3(x, y, z);
     if( update_mx )
+    {
         update_matrices();
+    }
 }
 
 void Camera::check_coord_bounds()
 {
-    if (eye_spheric.x < RHO_MIN)
+    if (RHO_MIN > eye_spheric.x)
     {
         eye_spheric.x = RHO_MIN;
     }
-    if (eye_spheric.x > RHO_MAX)
+    if (RHO_MAX < eye_spheric.x)
     {
         eye_spheric.x = RHO_MAX;
     }
-    if (eye_spheric.y < THETA_MIN)
+    if (THETA_MIN > eye_spheric.y)
     {
         eye_spheric.y = THETA_MIN;
     }
-    if (eye_spheric.y > THETA_MAX)
+    if (THETA_MAX < eye_spheric.y)
     {
         eye_spheric.y = THETA_MAX;
     }

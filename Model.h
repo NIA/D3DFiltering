@@ -185,8 +185,12 @@ public:
     virtual void set_textures(bool shadow, unsigned samplers_count = 1)
     {
         if(shadow)
+        {
             Model::set_textures(shadow, samplers_count);
+        }
         else
+        {
             texture.set(samplers_count);
+        }
     }
 };

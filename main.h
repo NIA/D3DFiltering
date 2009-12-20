@@ -13,15 +13,17 @@
 // a helper to release D3D interface if it is not NULL
 inline void release_interface(IUnknown* iface)
 {
-    if( iface != NULL )
+    if( NULL != iface )
+    {
         iface->Release();
+    }
 }
 
 // a helper to call delete[] on pointer to an array(!) if it is not NULL
 template<class Type> void delete_array(Type **dynamic_array)
 {
-    _ASSERT(dynamic_array != NULL);
-    if( *dynamic_array != NULL)
+    _ASSERT(NULL != dynamic_array);
+    if( NULL != *dynamic_array)
     {
         delete[] *dynamic_array;
         *dynamic_array = NULL;
