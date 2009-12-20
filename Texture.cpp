@@ -24,14 +24,17 @@ void Texture::set_as_target()
     check_texture( texture->GetSurfaceLevel(0, &surface) );
     check_texture( device->GetRenderTarget(0, &old_surface) ); // Store old
     check_texture( device->SetRenderTarget(0, surface) );
+    release_interface(surface);
 }
 
 void Texture::unset_as_target()
 {
     check_texture( device->SetRenderTarget(0, old_surface) ); // Restore old
+    release_interface(old_surface);
 }
 
 Texture::~Texture()
 {
     release_interface(texture);
+    release_interface(old_surface);
 }

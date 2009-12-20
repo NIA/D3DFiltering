@@ -401,6 +401,7 @@ void Application::delete_target_plane()
         delete target_plane;
     target_plane = NULL;
 }
+
 void Application::release_interfaces()
 {
     release_interface( d3d );
