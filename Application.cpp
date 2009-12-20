@@ -120,7 +120,7 @@ Application::Application()
     {
         init_device();
         RECT rect = window.get_client_rect();
-        target_texture = new Texture(device, rect.right - rect.left, rect.bottom - rect.top, FILTER_REGS_COUNT);
+        target_texture = new Texture(device, rect.right - rect.left, rect.bottom - rect.top);
     }
     // using catch(...) because every caught exception is rethrown
     catch(...)
@@ -180,7 +180,7 @@ inline void Application::draw_model(Model *model, float time, bool shadow)
     
     // Draw
     model->set_shaders_and_decl(shadow);
-    model->set_textures(shadow);
+    model->set_textures(shadow, FILTER_REGS_COUNT);
     model->draw();
 }
 
@@ -258,7 +258,6 @@ void Application::render()
     
     // Present the backbuffer contents to the display
     check_render( device->Present( NULL, NULL, NULL, NULL ) );
-
 }
 
 IDirect3DDevice9 * Application::get_device()

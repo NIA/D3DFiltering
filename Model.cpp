@@ -65,6 +65,15 @@ Model::Model(   IDirect3DDevice9 *device, D3DPRIMITIVETYPE primitive_type,
         throw;
     }
 }
+void Model::set_textures(bool shadow, unsigned samplers_count /*= 1*/)
+{
+    UNREFERENCED_PARAMETER(shadow);
+    for( unsigned i = 0; i < samplers_count; ++i )
+    {
+        check_render( device->SetTexture(i, NULL) );
+    }
+}
+
 void Model::draw() const
 {
     check_render( device->SetStreamSource( 0, vertex_buffer, 0, vertex_size ) );
