@@ -36,6 +36,8 @@ private:
 
     D3DXVECTOR3 point_light_position;
 
+    const float *filter;
+
     // Initialization steps:
     void init_device();
 

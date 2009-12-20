@@ -67,14 +67,35 @@ namespace
         D3DXVECTOR3(  0.5f,  1.5f, 0 ),
     };
 
-    const float       FILTER[FILTER_SIZE*FILTER_SIZE] = 
+    const float       NO_FILTER[FILTER_SIZE*FILTER_SIZE] = 
+    {
+         0,  0,  0,
+         0,  1,  0,
+         0,  0,  0,
+    };
+    const float       EMBOSS_FILTER[FILTER_SIZE*FILTER_SIZE] = 
     {
          0,  1,  0,
         -1,  0,  1,
          0, -1,  0,
-         //0,  0,  0,
-         //0,  1,  0,
-         //0,  0,  0,
+    };
+    const float       BLUR_FILTER[FILTER_SIZE*FILTER_SIZE] = 
+    {
+              0,  1.0f/6,       0,
+         1.0f/6,  1.0f/3,  1.0f/6,
+              0,  1.0f/6,       0,
+    };
+    const float       SHARP_FILTER[FILTER_SIZE*FILTER_SIZE] = 
+    {
+         0, -1,  0,
+        -1,  5, -1,
+         0, -1,  0,
+    };
+    const float       EDGE_FILTER[FILTER_SIZE*FILTER_SIZE] = 
+    {
+         0, -1,  0,
+        -1,  4, -1,
+         0, -1,  0,
     };
     //---------------- VERTEX SHADER CONSTANTS ---------------------------
     //    c0 - c4 are filter values of ...
@@ -92,7 +113,7 @@ namespace
 Application::Application()
 : d3d(NULL), device(NULL), window(WINDOW_SIZE, WINDOW_SIZE), camera(5, 0.68f, 0), // Constants selected for better view of the scene
   point_light_enabled(true), ambient_light_enabled(true), point_light_position(SHADER_VAL_POINT_POSITION),
-  plane(NULL), light_source(NULL), target_texture(NULL), target_plane(NULL)
+  plane(NULL), light_source(NULL), target_texture(NULL), target_plane(NULL), filter(NO_FILTER)
 {
     try
     {
@@ -194,7 +215,7 @@ void Application::render()
         texcoord_shift.y = SHADER_VAL_FILTER_TEXCOORD_SHIFT[i].x*texcoord_multiplier.y;
         set_shader_vector( SHADER_REG_FILTER_TEXCOORD_SHIFT + i, texcoord_shift );
 
-        set_pixel_shader_float( SHADER_REG_FILTER + i, FILTER[ SHADER_VAL_INDEX_FILTER[i] ] );
+        set_pixel_shader_float( SHADER_REG_FILTER + i, filter[ SHADER_VAL_INDEX_FILTER[i] ] );
     }
 
     // Set render target
@@ -309,11 +330,22 @@ void Application::process_key(unsigned code)
     case 'F':
         point_light_position.z -= POINT_MOVING_STEP;
         break;
+    case '0':
+    case '~':
+    case '`':
+        filter = NO_FILTER;
+        break;
     case '1':
-        point_light_enabled = !point_light_enabled;
+        filter = EMBOSS_FILTER;
         break;
     case '2':
-        ambient_light_enabled = !ambient_light_enabled;
+        filter = BLUR_FILTER;
+        break;
+    case '3':
+        filter = SHARP_FILTER;
+        break;
+    case '4':
+        filter = EDGE_FILTER;
         break;
     }
 }
