@@ -97,6 +97,7 @@ namespace
         -1,  4, -1,
          0, -1,  0,
     };
+    const float FILTER_COEFF = 5; // each constant is divided by FILTER_COEFF before sending to pixel shader
     //---------------- VERTEX SHADER CONSTANTS ---------------------------
     //    c0 - c4 are filter values of ...
     const unsigned    SHADER_REG_FILTER = 0;
@@ -215,7 +216,7 @@ void Application::render()
         texcoord_shift.y = SHADER_VAL_FILTER_TEXCOORD_SHIFT[i].x*texcoord_multiplier.y;
         set_shader_vector( SHADER_REG_FILTER_TEXCOORD_SHIFT + i, texcoord_shift );
 
-        set_pixel_shader_float( SHADER_REG_FILTER + i, filter[ SHADER_VAL_INDEX_FILTER[i] ] );
+        set_pixel_shader_float( SHADER_REG_FILTER + i, filter[ SHADER_VAL_INDEX_FILTER[i] ]/FILTER_COEFF );
     }
 
     // Set render target
@@ -331,8 +332,7 @@ void Application::process_key(unsigned code)
         point_light_position.z -= POINT_MOVING_STEP;
         break;
     case '0':
-    case '~':
-    case '`':
+    case VK_OEM_3:
         filter = NO_FILTER;
         break;
     case '1':

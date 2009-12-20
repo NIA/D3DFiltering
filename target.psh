@@ -31,4 +31,9 @@ mov r4.w, c7.w ; re-init
 
 add r0, r0, r4
 
-add r0, r0, c6
+add r1, r0, r0  ; multiply r0 5 times
+add r1, r1, r0
+add r1, r1, r0
+add r0, r1, r0
+
+add r0, r0, c6 ; just a little lighter
