@@ -239,11 +239,11 @@ unsigned LightSource::set_constants(D3DXVECTOR4 *out_data, unsigned buffer_size)
 
 // --------------------------------------------- TexturedModel -------------------------------------------------------
 
-TexturedModel::TexturedModel( IDirect3DDevice9 *device, D3DPRIMITIVETYPE primitive_type, VertexShader &vertex_shader, PixelShader &pixel_shader,
+TexturedModel::TexturedModel( IDirect3DDevice9 *device, D3DPRIMITIVETYPE primitive_type, VertexShader &vertex_shader, PixelShader &pixel_shader, PixelShader &edges_pixel_shader,
                               const TexturedVertex *vertices, unsigned int vertices_count, const Index *indices, unsigned int indices_count,
-                              unsigned int primitives_count, D3DXVECTOR3 position, D3DXVECTOR3 rotation, Texture &texture)
+                              unsigned int primitives_count, D3DXVECTOR3 position, D3DXVECTOR3 rotation, Texture &texture, Texture &edges_texture)
 : Model(device, primitive_type, vertex_shader, vertex_shader, pixel_shader, pixel_shader, TexturedVertex::get_declaration(device), sizeof(TexturedVertex),
         vertices, vertices_count, indices, indices_count, primitives_count, position, rotation),
-  texture(texture)
+  texture(texture), edges_pixel_shader(edges_pixel_shader), edges_texture(edges_texture)
 {
 }

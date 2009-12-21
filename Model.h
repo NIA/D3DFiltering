@@ -8,11 +8,6 @@ class Model
 {
 private:
     IDirect3DDevice9    *device;
-    VertexDeclaration   &vertex_declaration;
-    VertexShader        &vertex_shader;
-    VertexShader        &shadow_vertex_shader;
-    PixelShader         &pixel_shader;
-    PixelShader         &shadow_pixel_shader;
 
     unsigned    vertices_count;
     unsigned    primitives_count;
@@ -29,6 +24,13 @@ private:
     void update_matrix();
 
     void release_interfaces();
+
+protected:
+    VertexDeclaration   &vertex_declaration;
+    VertexShader        &vertex_shader;
+    VertexShader        &shadow_vertex_shader;
+    PixelShader         &pixel_shader;
+    PixelShader         &shadow_pixel_shader;
 
 public:
     Model(  IDirect3DDevice9 *device,
@@ -167,11 +169,14 @@ class TexturedModel : public Model
 {
 private:
     Texture &texture;
+    Texture &edges_texture;
+    PixelShader &edges_pixel_shader;
 public:
     TexturedModel(  IDirect3DDevice9 *device,
                     D3DPRIMITIVETYPE primitive_type,
                     VertexShader &vertex_shader,
                     PixelShader &pixel_shader,
+                    PixelShader &edges_pixel_shader,
                     const TexturedVertex *vertices,
                     unsigned vertices_count,
                     const Index *indices,
@@ -179,7 +184,8 @@ public:
                     unsigned primitives_count,
                     D3DXVECTOR3 position,
                     D3DXVECTOR3 rotation,
-                    Texture &texture);
+                    Texture &texture,
+                    Texture &edges_texture);
 
     // Overrides:
     virtual void set_textures(bool shadow, unsigned samplers_count = 1)
@@ -192,5 +198,12 @@ public:
         {
             texture.set(samplers_count);
         }
+    }
+
+    void set_edges_shader()
+    {
+        vertex_declaration.set();
+        vertex_shader.set();
+        edges_pixel_shader.set();
     }
 };

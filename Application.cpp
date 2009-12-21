@@ -73,23 +73,11 @@ namespace
          0,  1,  0,
          0,  0,  0,
     };
-    const float       EMBOSS_FILTER[FILTER_SIZE*FILTER_SIZE] = 
-    {
-         0,  1,  0,
-        -1,  0,  1,
-         0, -1,  0,
-    };
     const float       BLUR_FILTER[FILTER_SIZE*FILTER_SIZE] = 
     {
               0,  1.0f/6,       0,
          1.0f/6,  1.0f/3,  1.0f/6,
               0,  1.0f/6,       0,
-    };
-    const float       SHARP_FILTER[FILTER_SIZE*FILTER_SIZE] = 
-    {
-         0, -1,  0,
-        -1,  5, -1,
-         0, -1,  0,
     };
     const float       EDGE_FILTER[FILTER_SIZE*FILTER_SIZE] = 
     {
@@ -97,7 +85,7 @@ namespace
         -1,  4, -1,
          0, -1,  0,
     };
-    const float FILTER_COEFF = 5; // each constant is divided by FILTER_COEFF before sending to pixel shader
+    const float FILTER_COEFF = 4;//8; // each constant is divided by FILTER_COEFF before sending to pixel shader
     //---------------- VERTEX SHADER CONSTANTS ---------------------------
     //    c0 - c4 are filter values of ...
     const unsigned    SHADER_REG_FILTER = 0;
@@ -111,16 +99,22 @@ namespace
     };
 }
 
+Texture *create_texture(IDirect3DDevice9 *device, RECT const &rect)
+{
+    return new Texture(device, rect.right - rect.left, rect.bottom - rect.top);
+}
+
 Application::Application()
 : d3d(NULL), device(NULL), window(WINDOW_SIZE, WINDOW_SIZE), camera(5, 0.68f, 0), // Constants selected for better view of the scene
   point_light_enabled(true), ambient_light_enabled(true), point_light_position(SHADER_VAL_POINT_POSITION),
-  plane(NULL), light_source(NULL), target_texture(NULL), target_plane(NULL), filter(NO_FILTER)
+  plane(NULL), light_source(NULL), target_texture(NULL), target_plane(NULL), filter(NO_FILTER), do_filtering(false)
 {
     try
     {
         init_device();
         RECT rect = window.get_client_rect();
-        target_texture = new Texture(device, rect.right - rect.left, rect.bottom - rect.top);
+        target_texture = create_texture(device, rect);
+        edges_texture = create_texture(device, rect);
     }
     // using catch(...) because every caught exception is rethrown
     catch(...)
@@ -165,6 +159,11 @@ void Application::init_device()
     set_render_state( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
     set_render_state( D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA );
 
+    check_texture( device->SetTextureStageState(0, D3DTSS_COLOROP,  D3DTOP_MODULATE) );
+    check_texture( device->SetTextureStageState(0, D3DTSS_COLORARG1,D3DTA_TEXTURE) );
+    check_texture( device->SetTextureStageState(0, D3DTSS_COLORARG2,D3DTA_DIFFUSE) );
+    check_texture( device->SetTextureStageState(0, D3DTSS_ALPHAOP,  D3DTOP_DISABLE) );
+
     toggle_wireframe();
 }
 
@@ -186,44 +185,8 @@ inline void Application::draw_model(Model *model, float time, bool shadow)
     model->draw();
 }
 
-void Application::render()
+void Application::render_scene(float time)
 {
-    // Begin the scene
-    check_render( device->BeginScene() );
-    // Setting constants
-    float time = static_cast<float>( clock() )/static_cast<float>( CLOCKS_PER_SEC );
-
-    D3DCOLOR ambient_color = ambient_light_enabled ? SHADER_VAL_AMBIENT_COLOR : BLACK;
-    D3DCOLOR point_color = point_light_enabled ? SHADER_VAL_POINT_COLOR : BLACK;
-    D3DXMATRIX shadow_proj_matrix = plane->get_projection_matrix(point_light_position);
-
-    D3DXVECTOR3 texcoord_multiplier (1.0f/target_texture->get_float_width(), 1.0f/target_texture->get_float_height(), 0);
-
-    set_shader_matrix( SHADER_REG_VIEW_MX,        camera.get_matrix()       );
-    set_shader_float ( SHADER_REG_DIFFUSE_COEF,   SHADER_VAL_DIFFUSE_COEF   );
-    set_shader_color ( SHADER_REG_AMBIENT_COLOR,  ambient_color             );
-    set_shader_color ( SHADER_REG_POINT_COLOR,    point_color               );
-    set_shader_point ( SHADER_REG_POINT_POSITION, point_light_position      );
-    set_shader_vector( SHADER_REG_ATTENUATION,    SHADER_VAL_ATTENUATION    );
-    set_shader_float ( SHADER_REG_SPECULAR_COEF,  SHADER_VAL_SPECULAR_COEF  );
-    set_shader_float ( SHADER_REG_SPECULAR_F,     SHADER_VAL_SPECULAR_F     );
-    set_shader_point ( SHADER_REG_EYE,            camera.get_eye()          );
-    set_shader_matrix( SHADER_REG_SHADOW_PROJ_MX, shadow_proj_matrix        );
-    set_shader_vector( SHADER_REG_SHADOW_ATTENUATION, SHADER_VAL_SHADOW_ATTENUATION );
-    
-    for( unsigned i = 0; i < FILTER_REGS_COUNT; ++i )
-    {
-        D3DXVECTOR3 texcoord_shift( 0, 0, 0 );
-        texcoord_shift.x = SHADER_VAL_FILTER_TEXCOORD_SHIFT[i].x*texcoord_multiplier.x;
-        texcoord_shift.y = SHADER_VAL_FILTER_TEXCOORD_SHIFT[i].x*texcoord_multiplier.y;
-        set_shader_vector( SHADER_REG_FILTER_TEXCOORD_SHIFT + i, texcoord_shift );
-
-        set_pixel_shader_float( SHADER_REG_FILTER + i, filter[ SHADER_VAL_INDEX_FILTER[i] ]/FILTER_COEFF );
-    }
-
-    // Set render target
-    target_texture->set_as_target();
-    check_render( device->Clear( 0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, BACKGROUND_COLOR, 1.0f, 0 ) );
     // Draw Light Source
     draw_model( light_source, time, false );
     // Draw Plane
@@ -249,11 +212,80 @@ void Application::render()
     {
         draw_model( *iter, time, false );
     }
+}
+void Application::set_filter(const float *filter)
+{
+    D3DXVECTOR3 texcoord_multiplier (1.0f/target_texture->get_float_width(), 1.0f/target_texture->get_float_height(), 0);
+
+    for( unsigned i = 0; i < FILTER_REGS_COUNT; ++i )
+    {
+        D3DXVECTOR3 texcoord_shift( 0, 0, 0 );
+        texcoord_shift.x = SHADER_VAL_FILTER_TEXCOORD_SHIFT[i].x*texcoord_multiplier.x;
+        texcoord_shift.y = SHADER_VAL_FILTER_TEXCOORD_SHIFT[i].x*texcoord_multiplier.y;
+        set_shader_vector( SHADER_REG_FILTER_TEXCOORD_SHIFT + i, texcoord_shift );
+
+        set_pixel_shader_float( SHADER_REG_FILTER + i, filter[ SHADER_VAL_INDEX_FILTER[i] ]/FILTER_COEFF );
+    }
+}
+
+void Application::render()
+{
+    // Begin the scene
+    check_render( device->BeginScene() );
+    // Setting constants
+    float time = static_cast<float>( clock() )/static_cast<float>( CLOCKS_PER_SEC );
+
+    D3DCOLOR ambient_color = ambient_light_enabled ? SHADER_VAL_AMBIENT_COLOR : BLACK;
+    D3DCOLOR point_color = point_light_enabled ? SHADER_VAL_POINT_COLOR : BLACK;
+    D3DXMATRIX shadow_proj_matrix = plane->get_projection_matrix(point_light_position);
+
+    set_shader_matrix( SHADER_REG_VIEW_MX,        camera.get_matrix()       );
+    set_shader_float ( SHADER_REG_DIFFUSE_COEF,   SHADER_VAL_DIFFUSE_COEF   );
+    set_shader_color ( SHADER_REG_AMBIENT_COLOR,  ambient_color             );
+    set_shader_color ( SHADER_REG_POINT_COLOR,    point_color               );
+    set_shader_point ( SHADER_REG_POINT_POSITION, point_light_position      );
+    set_shader_vector( SHADER_REG_ATTENUATION,    SHADER_VAL_ATTENUATION    );
+    set_shader_float ( SHADER_REG_SPECULAR_COEF,  SHADER_VAL_SPECULAR_COEF  );
+    set_shader_float ( SHADER_REG_SPECULAR_F,     SHADER_VAL_SPECULAR_F     );
+    set_shader_point ( SHADER_REG_EYE,            camera.get_eye()          );
+    set_shader_matrix( SHADER_REG_SHADOW_PROJ_MX, shadow_proj_matrix        );
+    set_shader_vector( SHADER_REG_SHADOW_ATTENUATION, SHADER_VAL_SHADOW_ATTENUATION );
+
     // Set render target
-    target_texture->unset_as_target();
+    target_texture->set_as_target();
+    check_render( device->Clear( 0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, BACKGROUND_COLOR, 1.0f, 0 ) );
 
     // Draw target plane
-    draw_model( target_plane, time, false );
+    if( do_filtering )
+    {
+        render_scene( time );
+        // Unset render target
+        target_texture->unset_as_target();
+        // render edges
+        set_filter( EDGE_FILTER );
+        target_plane->set_edges_shader();
+//        edges_texture->set_as_target();
+        target_plane->set_textures( false, FILTER_REGS_COUNT );
+        target_plane->draw();
+//        edges_texture->unset_as_target();
+        // render blur
+//        set_filter( BLUR_FILTER );
+        // set edges as texture
+//        edges_texture->set( FILTER_REGS_COUNT );
+//        target_plane->set_shaders_and_decl(false);
+//        target_plane->draw();
+
+        // unset edges as texture
+        target_plane->set_textures( true, FILTER_REGS_COUNT );
+    }
+    else
+   {
+        render_scene( time );
+        // Unset render target
+        target_texture->unset_as_target();
+        set_filter( NO_FILTER );
+        draw_model( target_plane, time, false );
+    }
 
     // End the scene
     check_render( device->EndScene() );
@@ -334,19 +366,10 @@ void Application::process_key(unsigned code)
         break;
     case '0':
     case VK_OEM_3:
-        filter = NO_FILTER;
+        do_filtering = false;
         break;
     case '1':
-        filter = EMBOSS_FILTER;
-        break;
-    case '2':
-        filter = BLUR_FILTER;
-        break;
-    case '3':
-        filter = SHARP_FILTER;
-        break;
-    case '4':
-        filter = EDGE_FILTER;
+        do_filtering = true;
         break;
     }
 }
@@ -405,6 +428,7 @@ void Application::toggle_wireframe()
         set_render_state( D3DRS_FILLMODE, D3DFILL_SOLID );
     }
 }
+
 void Application::delete_target_plane()
 {
     if( NULL != target_plane)
@@ -422,6 +446,10 @@ void Application::release_interfaces()
     if( NULL != target_texture)
     {
         delete target_texture;
+    }
+    if( NULL != edges_texture)
+    {
+        delete edges_texture;
     }
 }
 
