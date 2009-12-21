@@ -264,19 +264,20 @@ void Application::render()
         // render edges
         set_filter( EDGE_FILTER );
         target_plane->set_edges_shader();
-//        edges_texture->set_as_target();
+        edges_texture->set_as_target();
         target_plane->set_textures( false, FILTER_REGS_COUNT );
         target_plane->draw();
-//        edges_texture->unset_as_target();
+        edges_texture->unset_as_target();
         // render blur
-//        set_filter( BLUR_FILTER );
+        set_filter( BLUR_FILTER );
         // set edges as texture
-//        edges_texture->set( FILTER_REGS_COUNT );
-//        target_plane->set_shaders_and_decl(false);
-//        target_plane->draw();
+        edges_texture->set( FILTER_REGS_COUNT + 1 );
+        target_texture->set( FILTER_REGS_COUNT );
+        target_plane->set_shaders_and_decl(false);
+        target_plane->draw();
 
         // unset edges as texture
-        target_plane->set_textures( true, FILTER_REGS_COUNT );
+        target_plane->set_textures( true, FILTER_REGS_COUNT + 1 );
     }
     else
    {

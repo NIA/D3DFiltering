@@ -12,13 +12,12 @@ texld r0, t0
 texld r1, t1
 texld r2, t2
 texld r3, t3
-texld r4, t4
+;;;;;;;;;;;texld r5, t5
 
 mul r0, r0, c0
 mul r1, r1, c1
 mul r2, r2, c2
 mul r3, r3, c3
-mul r4, r4, c4
 
 add r0, r0, r1
 add r0, r0, r2
@@ -26,8 +25,10 @@ add r0, r0, r3
 
 phase
 
+texld r4, t4
+mul r4, r4, c4
+
 mov r0.w, c7.w ; re-init
-mov r4.w, c7.w ; re-init
 
 add r0, r0, r4
 
