@@ -16,6 +16,7 @@ namespace
     const char *TARGET_VERTEX_SHADER_FILENAME = "target.vsh";
     const char *TARGET_PIXEL_SHADER_FILENAME = "target.psh";
     const char *TARGET_EDGES_PIXEL_SHADER_FILENAME = "target_edge.psh";
+    const char *DOUBLE_CHANNEL_PIXEL_SHADER_FILENAME = "double-channel.psh";
 
     const D3DCOLOR colors[] =
     {
@@ -68,9 +69,10 @@ INT WINAPI wWinMain( HINSTANCE, HINSTANCE, LPWSTR, INT )
             VertexShader plane_shader(app.get_device(), PLANE_SHADER_FILENAME);
             VertexShader light_source_shader(app.get_device(), LIGHT_SOURCE_SHADER_FILENAME);
             VertexShader target_vertex_shader(app.get_device(), TARGET_VERTEX_SHADER_FILENAME);
-            PixelShader  no_pixel_shader(app.get_device());
+            //PixelShader  no_pixel_shader(app.get_device());
             PixelShader  target_pixel_shader(app.get_device(), TARGET_PIXEL_SHADER_FILENAME);
             PixelShader  target_edges_pixel_shader(app.get_device(), TARGET_EDGES_PIXEL_SHADER_FILENAME);
+            PixelShader  double_channel_pixel_shader(app.get_device(), DOUBLE_CHANNEL_PIXEL_SHADER_FILENAME);
             
             // -------------------------- C y l i n d e r -----------------------
 
@@ -86,7 +88,7 @@ INT WINAPI wWinMain( HINSTANCE, HINSTANCE, LPWSTR, INT )
                                     D3DPT_TRIANGLESTRIP,
                                     skinning_shader,
                                     skinning_shadow_shader,
-                                    no_pixel_shader,
+                                    double_channel_pixel_shader,
                                     cylinder_vertices,
                                     CYLINDER_VERTICES_COUNT,
                                     cylinder_indices,
@@ -105,7 +107,7 @@ INT WINAPI wWinMain( HINSTANCE, HINSTANCE, LPWSTR, INT )
                                     D3DPT_TRIANGLESTRIP,
                                     skinning_shader,
                                     skinning_shadow_shader,
-                                    no_pixel_shader,
+                                    double_channel_pixel_shader,
                                     cylinder_vertices,
                                     CYLINDER_VERTICES_COUNT,
                                     cylinder_indices,
@@ -126,7 +128,7 @@ INT WINAPI wWinMain( HINSTANCE, HINSTANCE, LPWSTR, INT )
                                   D3DPT_TRIANGLELIST,
                                   morphing_shader,
                                   morphing_shadow_shader,
-                                  no_pixel_shader,
+                                  double_channel_pixel_shader,
                                   sphere_vertices,
                                   SPHERE_ALL_TESSELATED_VERTICES_COUNT,
                                   sphere_indices,
@@ -144,7 +146,7 @@ INT WINAPI wWinMain( HINSTANCE, HINSTANCE, LPWSTR, INT )
             Plane plane( app.get_device(),
                          D3DPT_TRIANGLELIST,
                          plane_shader,
-                         no_pixel_shader,
+                         double_channel_pixel_shader,
                          plane_vertices,
                          PLANE_VERTICES_COUNT,
                          plane_indices,
@@ -162,7 +164,7 @@ INT WINAPI wWinMain( HINSTANCE, HINSTANCE, LPWSTR, INT )
             LightSource light_source( app.get_device(),
                                       D3DPT_TRIANGLELIST,
                                       light_source_shader,
-                                      no_pixel_shader,
+                                      double_channel_pixel_shader,
                                       light_source_vertices,
                                       LIGHT_SOURCE_ALL_TESSELATED_VERTICES_COUNT,
                                       light_source_indices,

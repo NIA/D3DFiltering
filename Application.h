@@ -31,6 +31,7 @@ private:
 
     Texture *target_texture;
     Texture *edges_texture;
+    Texture *normals_texture;
     TexturedModel *target_plane;
 
     Camera camera;

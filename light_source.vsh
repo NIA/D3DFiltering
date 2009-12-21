@@ -1,6 +1,7 @@
 vs_1_1
 dcl_position v0
 dcl_color v1
+dcl_normal v3
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; c0 - c3 is view matrix           ;;
@@ -26,3 +27,4 @@ mov r0.w, c111.w
 ; results
 m4x4 oPos, r0, c0
 mov oD0, c16
+mov oT0, v3

@@ -126,3 +126,4 @@ add r6, r6, c15         ; r6 += I(ambient)
 m4x4 oPos, r1, c0
 mov oD0, v1
 mul oD0, v1, r6
+mov oT0, r10

@@ -115,6 +115,7 @@ Application::Application()
         RECT rect = window.get_client_rect();
         target_texture = create_texture(device, rect);
         edges_texture = create_texture(device, rect);
+        normals_texture = create_texture(device, rect);
     }
     // using catch(...) because every caught exception is rethrown
     catch(...)
@@ -190,24 +191,24 @@ void Application::render_scene(float time)
     // Draw Light Source
     draw_model( light_source, time, false );
     // Draw Plane
-    set_render_state( D3DRS_STENCILPASS, D3DSTENCILOP_REPLACE );
+    //set_render_state( D3DRS_STENCILPASS, D3DSTENCILOP_REPLACE );
     draw_model( plane, time, false );
-    // Draw shadows if point_light_enabled
-    set_render_state( D3DRS_ZENABLE, FALSE );
-    set_render_state( D3DRS_STENCILFUNC, D3DCMP_EQUAL );
-    set_render_state( D3DRS_STENCILPASS, D3DSTENCILOP_INCRSAT );
-    set_render_state( D3DRS_ALPHABLENDENABLE, TRUE );
-    if ( point_light_enabled )
-    {
-        for ( Models::iterator iter = models.begin(); iter != models.end(); ++iter )
-        {
-            draw_model( *iter, time, true );
-        }
-    }
+    //// Draw shadows if point_light_enabled
+    //set_render_state( D3DRS_ZENABLE, FALSE );
+    //set_render_state( D3DRS_STENCILFUNC, D3DCMP_EQUAL );
+    //set_render_state( D3DRS_STENCILPASS, D3DSTENCILOP_INCRSAT );
+    //set_render_state( D3DRS_ALPHABLENDENABLE, TRUE );
+    //if ( point_light_enabled )
+    //{
+    //    for ( Models::iterator iter = models.begin(); iter != models.end(); ++iter )
+    //    {
+    //        draw_model( *iter, time, true );
+    //    }
+    //}
     // Draw models
-    set_render_state( D3DRS_ZENABLE, TRUE );
-    set_render_state( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
-    set_render_state( D3DRS_ALPHABLENDENABLE, FALSE );
+    //set_render_state( D3DRS_ZENABLE, TRUE );
+    //set_render_state( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
+    //set_render_state( D3DRS_ALPHABLENDENABLE, FALSE );
     for ( Models::iterator iter = models.begin(); iter != models.end(); ++iter )
     {
         draw_model( *iter, time, false );
@@ -253,37 +254,58 @@ void Application::render()
 
     // Set render target
     target_texture->set_as_target();
+    normals_texture->set_as_target(1);
     check_render( device->Clear( 0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, BACKGROUND_COLOR, 1.0f, 0 ) );
 
     // Draw target plane
     if( do_filtering )
     {
+////////////////////////////////////////////////////////////////////////////////////////
         render_scene( time );
         // Unset render target
         target_texture->unset_as_target();
+        normals_texture->unset_as_target(1);
         // render edges
-        set_filter( EDGE_FILTER );
+        set_filter(/* EDGE_FILTER */ NO_FILTER);
         target_plane->set_edges_shader();
-        edges_texture->set_as_target();
-        target_plane->set_textures( false, FILTER_REGS_COUNT );
+        normals_texture->set( FILTER_REGS_COUNT );
+        
+        //target_plane->set_textures( false, FILTER_REGS_COUNT );
         target_plane->draw();
-        edges_texture->unset_as_target();
         // render blur
-        set_filter( BLUR_FILTER );
         // set edges as texture
-        edges_texture->set( FILTER_REGS_COUNT + 1 );
-        target_texture->set( FILTER_REGS_COUNT );
-        target_plane->set_shaders_and_decl(false);
-        target_plane->draw();
 
         // unset edges as texture
-        target_plane->set_textures( true, FILTER_REGS_COUNT + 1 );
+        target_plane->set_textures( true, FILTER_REGS_COUNT );
+////////////////////////////////////////////////////////////////////////////////////////
+        //render_scene( time );
+        //// Unset render target
+        //target_texture->unset_as_target();
+        //// render edges
+        //set_filter( EDGE_FILTER );
+        //target_plane->set_edges_shader();
+        //edges_texture->set_as_target();
+        //target_plane->set_textures( false, FILTER_REGS_COUNT );
+        //target_plane->draw();
+        //edges_texture->unset_as_target();
+        //// render blur
+        //set_filter( BLUR_FILTER );
+        //// set edges as texture
+        //edges_texture->set( FILTER_REGS_COUNT + 1 );
+        //target_texture->set( FILTER_REGS_COUNT );
+        //target_plane->set_shaders_and_decl(false);
+        //target_plane->draw();
+
+        //// unset edges as texture
+        //target_plane->set_textures( true, FILTER_REGS_COUNT + 1 );
+////////////////////////////////////////////////////////////////////////////////////////
     }
     else
    {
         render_scene( time );
         // Unset render target
         target_texture->unset_as_target();
+        normals_texture->unset_as_target(1);
         set_filter( NO_FILTER );
         draw_model( target_plane, time, false );
     }
@@ -451,6 +473,10 @@ void Application::release_interfaces()
     if( NULL != edges_texture)
     {
         delete edges_texture;
+    }
+    if( NULL != normals_texture)
+    {
+        delete normals_texture;
     }
 }
 

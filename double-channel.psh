@@ -1,0 +1,8 @@
+ps_2_0
+;dcl_2d s0
+;dcl_2d s1
+dcl t0
+dcl v0
+
+mov oC0, v0
+mov oC1, t0
