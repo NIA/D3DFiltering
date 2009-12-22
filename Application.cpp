@@ -266,7 +266,7 @@ void Application::render()
         target_texture->unset_as_target();
         normals_texture->unset_as_target(1);
         // render edges
-        set_filter(/* EDGE_FILTER */ NO_FILTER);
+        set_filter( EDGE_FILTER );
         target_plane->set_edges_shader();
         normals_texture->set( FILTER_REGS_COUNT );
         

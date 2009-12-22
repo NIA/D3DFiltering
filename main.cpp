@@ -114,7 +114,7 @@ INT WINAPI wWinMain( HINSTANCE, HINSTANCE, LPWSTR, INT )
                                     CYLINDER_INDICES_COUNT,
                                     CYLINDER_INDICES_COUNT - 2,
                                     D3DXVECTOR3(-1.0f, 0.5f, height/2),
-                                    D3DXVECTOR3(D3DX_PI,0,-D3DX_PI/4),
+                                    D3DXVECTOR3(D3DX_PI + 0.5f,0,-D3DX_PI/4 ),
                                     D3DXVECTOR3(0,0,1));
 
             

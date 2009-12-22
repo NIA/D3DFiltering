@@ -4,5 +4,9 @@ ps_2_0
 dcl t0
 dcl v0
 
+def c5, 0.5, 0.5, 0.5, 0.5
+
+mul r0, t0, c5
+add r0, r0, c5
 mov oC0, v0
-mov oC1, t0
+mov oC1, r0
