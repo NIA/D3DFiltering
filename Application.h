@@ -32,6 +32,7 @@ private:
     Texture *target_texture;
     Texture *edges_texture;
     Texture *normals_texture;
+    Texture *second_blur_texture;
     TexturedModel *target_plane;
 
     PixelShader  *target_edges_pixel_shader;
@@ -43,6 +44,7 @@ private:
 
     const float *filter;
     bool do_filtering;
+    bool double_blur;
 
     // Initialization steps:
     void init_device();

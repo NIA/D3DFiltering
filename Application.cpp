@@ -110,7 +110,8 @@ Texture *create_texture(IDirect3DDevice9 *device, RECT const &rect)
 Application::Application()
 : d3d(NULL), device(NULL), window(WINDOW_SIZE, WINDOW_SIZE), camera(2.6f, 0.68f, 0), // Constants selected for better view of the scene
   point_light_enabled(true), ambient_light_enabled(true), point_light_position(SHADER_VAL_POINT_POSITION),
-  plane(NULL), light_source(NULL), target_texture(NULL), target_plane(NULL), filter(NO_FILTER), do_filtering(false)
+  plane(NULL), light_source(NULL), target_texture(NULL), target_plane(NULL), filter(NO_FILTER), do_filtering(false),
+  double_blur(false)
 {
     try
     {
@@ -119,6 +120,7 @@ Application::Application()
         target_texture = create_texture(device, rect);
         edges_texture = create_texture(device, rect);
         normals_texture = create_texture(device, rect);
+        second_blur_texture = create_texture(device, rect);
         target_edges_pixel_shader = new PixelShader(device, TARGET_EDGES_PIXEL_SHADER_FILENAME);
         target_blur_pixel_shader =  new PixelShader(device, TARGET_BLUR_PIXEL_SHADER_FILENAME);
     }
@@ -196,24 +198,8 @@ void Application::render_scene(float time)
     // Draw Light Source
     draw_model( light_source, time, false );
     // Draw Plane
-    //set_render_state( D3DRS_STENCILPASS, D3DSTENCILOP_REPLACE );
     draw_model( plane, time, false );
-    //// Draw shadows if point_light_enabled
-    //set_render_state( D3DRS_ZENABLE, FALSE );
-    //set_render_state( D3DRS_STENCILFUNC, D3DCMP_EQUAL );
-    //set_render_state( D3DRS_STENCILPASS, D3DSTENCILOP_INCRSAT );
-    //set_render_state( D3DRS_ALPHABLENDENABLE, TRUE );
-    //if ( point_light_enabled )
-    //{
-    //    for ( Models::iterator iter = models.begin(); iter != models.end(); ++iter )
-    //    {
-    //        draw_model( *iter, time, true );
-    //    }
-    //}
     // Draw models
-    //set_render_state( D3DRS_ZENABLE, TRUE );
-    //set_render_state( D3DRS_STENCILFUNC, D3DCMP_ALWAYS );
-    //set_render_state( D3DRS_ALPHABLENDENABLE, FALSE );
     for ( Models::iterator iter = models.begin(); iter != models.end(); ++iter )
     {
         draw_model( *iter, time, false );
@@ -279,13 +265,32 @@ void Application::render()
         target_plane->draw();
         edges_texture->unset_as_target();
         normals_texture->unset();
-        // render blur
         // set edges as texture
         edges_texture->set( 1 );
-        set_filter( BLUR_FILTER );
-        target_texture->set();
-        target_blur_pixel_shader->set();
-        target_plane->draw();
+        if( double_blur )
+        {
+            set_filter( BLUR_FILTER );
+            target_blur_pixel_shader->set();
+            // render blur
+            second_blur_texture->set_as_target();
+            target_texture->set();
+            target_plane->draw();
+            second_blur_texture->unset_as_target();
+            target_texture->unset();
+            // render blur
+            second_blur_texture->set();
+            target_plane->draw();
+            second_blur_texture->unset();
+        }
+        else
+        {
+            // render blur
+            target_texture->set();
+            set_filter( BLUR_FILTER );
+            target_blur_pixel_shader->set();
+            target_plane->draw();
+            target_texture->unset();
+        }
 
         // unset edges as texture
         edges_texture->unset( 1 );
@@ -383,6 +388,11 @@ void Application::process_key(unsigned code)
         break;
     case '1':
         do_filtering = true;
+        double_blur = false;
+        break;
+    case '2':
+        do_filtering = true;
+        double_blur = true;
         break;
     }
 }
@@ -450,6 +460,7 @@ void Application::release_interfaces()
     delete_pointer( &target_texture );
     delete_pointer( &edges_texture );
     delete_pointer( &normals_texture );
+    delete_pointer( &second_blur_texture );
     delete_pointer( &target_blur_pixel_shader );
     delete_pointer( &target_edges_pixel_shader );
 }
