@@ -12,8 +12,9 @@ dcl t2
 dcl t3
 dcl t4
 
-def c7, 0.0, 0.0, 0.0, 0.0
 def c6, 0.1, 0.1, 0.1, 0.1
+def c7, 0.0, 0.0, 0.0, 0.0
+def c8, 0.01, 0.01, 0.01, 0.01
 
 texld r0, t0, s0
 texld r1, t1, s0
@@ -38,6 +39,7 @@ add r0, r0, r4
 add r0, r0, r0  ; multiply r0 4 times
 add r0, r0, r0
 
+sub r5, r5, c8
 cmp r7, r5, r0, r6
 
-mov oC0, r5
+mov oC0, r7
