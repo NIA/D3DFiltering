@@ -7,12 +7,14 @@ Texture::Texture(IDirect3DDevice9 *device, unsigned width, unsigned height)
     old_surfaces[0] = old_surfaces[1] = NULL;
 }
 
-void Texture::set(unsigned samplers_count /*= 1*/)
+void Texture::set(unsigned samler_index /*= 0*/)
 {
-    for( unsigned i = 0; i < samplers_count; ++i )
-    {
-        check_texture( device->SetTexture(i, texture) );
-    }
+    check_texture( device->SetTexture(samler_index, texture) );
+}
+
+void Texture::unset(unsigned samler_index /*= 0*/)
+{
+    check_texture( device->SetTexture(samler_index, NULL) );
 }
 
 void Texture::set_as_target(unsigned index /*= 0*/)
@@ -42,6 +44,4 @@ void Texture::unset_as_target(unsigned index /*= 0*/)
 Texture::~Texture()
 {
     release_interface(texture);
-    release_interface(old_surfaces[0]);
-    release_interface(old_surfaces[1]);
 }

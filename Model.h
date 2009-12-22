@@ -55,7 +55,7 @@ public:
         shadow ? shadow_vertex_shader.set() : vertex_shader.set();
         shadow ? shadow_pixel_shader.set() : pixel_shader.set();
     }
-    virtual void set_textures(bool shadow, unsigned samplers_count = 1);
+    virtual void set_textures(bool shadow, unsigned sampler_index = 0);
     virtual void set_time(float time) { UNREFERENCED_PARAMETER(time); }
     
     // set_constants() returns number of constant registers used
@@ -188,15 +188,15 @@ public:
                     Texture &edges_texture);
 
     // Overrides:
-    virtual void set_textures(bool shadow, unsigned samplers_count = 1)
+    virtual void set_textures(bool shadow, unsigned sampler_index = 0)
     {
         if(shadow)
         {
-            Model::set_textures(shadow, samplers_count);
+            Model::set_textures(shadow, sampler_index);
         }
         else
         {
-            texture.set(samplers_count);
+            texture.set(sampler_index);
         }
     }
 

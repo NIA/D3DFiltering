@@ -182,7 +182,7 @@ inline void Application::draw_model(Model *model, float time, bool shadow)
     
     // Draw
     model->set_shaders_and_decl(shadow);
-    model->set_textures(shadow, FILTER_REGS_COUNT);
+    model->set_textures(shadow);
     model->draw();
 }
 
@@ -253,6 +253,7 @@ void Application::render()
     set_shader_vector( SHADER_REG_SHADOW_ATTENUATION, SHADER_VAL_SHADOW_ATTENUATION );
 
     // Set render target
+    target_texture->unset();
     target_texture->set_as_target();
     normals_texture->set_as_target(1);
     check_render( device->Clear( 0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, BACKGROUND_COLOR, 1.0f, 0 ) );
@@ -260,7 +261,7 @@ void Application::render()
     // Draw target plane
     if( do_filtering )
     {
-////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////// to view edges ////////////////////////////////////////////////////////////
         render_scene( time );
         // Unset render target
         target_texture->unset_as_target();
@@ -268,16 +269,11 @@ void Application::render()
         // render edges
         set_filter( EDGE_FILTER );
         target_plane->set_edges_shader();
-        normals_texture->set( FILTER_REGS_COUNT );
-        
-        //target_plane->set_textures( false, FILTER_REGS_COUNT );
+        normals_texture->set();
         target_plane->draw();
-        // render blur
-        // set edges as texture
+        normals_texture->unset();
 
-        // unset edges as texture
-        target_plane->set_textures( true, FILTER_REGS_COUNT );
-////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////// to view blur ///////////////////////////////////////////////////////////
         //render_scene( time );
         //// Unset render target
         //target_texture->unset_as_target();
@@ -285,23 +281,24 @@ void Application::render()
         //set_filter( EDGE_FILTER );
         //target_plane->set_edges_shader();
         //edges_texture->set_as_target();
-        //target_plane->set_textures( false, FILTER_REGS_COUNT );
+        //target_texture->set();
         //target_plane->draw();
         //edges_texture->unset_as_target();
+        //target_texture->unset();
         //// render blur
-        //set_filter( BLUR_FILTER );
         //// set edges as texture
-        //edges_texture->set( FILTER_REGS_COUNT + 1 );
-        //target_texture->set( FILTER_REGS_COUNT );
+        //edges_texture->set( 1 );
+        //set_filter( BLUR_FILTER );
+        //target_texture->set();
         //target_plane->set_shaders_and_decl(false);
         //target_plane->draw();
 
         //// unset edges as texture
-        //target_plane->set_textures( true, FILTER_REGS_COUNT + 1 );
+        //edges_texture->unset( 1 );
 ////////////////////////////////////////////////////////////////////////////////////////
     }
     else
-   {
+    {
         render_scene( time );
         // Unset render target
         target_texture->unset_as_target();
