@@ -170,13 +170,11 @@ class TexturedModel : public Model
 private:
     Texture &texture;
     Texture &edges_texture;
-    PixelShader &edges_pixel_shader;
 public:
     TexturedModel(  IDirect3DDevice9 *device,
                     D3DPRIMITIVETYPE primitive_type,
                     VertexShader &vertex_shader,
                     PixelShader &pixel_shader,
-                    PixelShader &edges_pixel_shader,
                     const TexturedVertex *vertices,
                     unsigned vertices_count,
                     const Index *indices,
@@ -198,12 +196,5 @@ public:
         {
             texture.set(sampler_index);
         }
-    }
-
-    void set_edges_shader()
-    {
-        vertex_declaration.set();
-        vertex_shader.set();
-        edges_pixel_shader.set();
     }
 };

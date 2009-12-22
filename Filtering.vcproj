@@ -338,6 +338,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\target_blur.psh"
+				>
+			</File>
+			<File
 				RelativePath=".\target_edge.psh"
 				>
 			</File>

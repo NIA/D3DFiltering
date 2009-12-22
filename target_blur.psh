@@ -1,0 +1,43 @@
+ps_2_0
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; c0 - c4 are filter values        ;;
+;;                                  ;;
+;; c7 is constant 0.0              ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+dcl_2d s0
+dcl_2d s1
+dcl t0
+dcl t1
+dcl t2
+dcl t3
+dcl t4
+
+def c7, 0.0, 0.0, 0.0, 0.0
+def c6, 0.1, 0.1, 0.1, 0.1
+
+texld r0, t0, s0
+texld r1, t1, s0
+texld r2, t2, s0
+texld r3, t3, s0
+texld r4, t4, s0
+
+texld r5, t0, s1
+mov r6, r0
+
+mul r0, r0, c0
+mul r1, r1, c1
+mul r2, r2, c2
+mul r3, r3, c3
+mul r4, r4, c4
+
+add r0, r0, r1
+add r0, r0, r2
+add r0, r0, r3
+add r0, r0, r4
+
+add r0, r0, r0  ; multiply r0 4 times
+add r0, r0, r0
+
+cmp r7, r5, r0, r6
+
+mov oC0, r5

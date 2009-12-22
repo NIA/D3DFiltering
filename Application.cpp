@@ -97,6 +97,9 @@ namespace
         5, // ... ( 1,  0)
         7, // ... ( 0,  1)
     };
+
+    const char *TARGET_EDGES_PIXEL_SHADER_FILENAME = "target_edge.psh";
+    const char *TARGET_BLUR_PIXEL_SHADER_FILENAME = "target_blur.psh";
 }
 
 Texture *create_texture(IDirect3DDevice9 *device, RECT const &rect)
@@ -105,7 +108,7 @@ Texture *create_texture(IDirect3DDevice9 *device, RECT const &rect)
 }
 
 Application::Application()
-: d3d(NULL), device(NULL), window(WINDOW_SIZE, WINDOW_SIZE), camera(5, 0.68f, 0), // Constants selected for better view of the scene
+: d3d(NULL), device(NULL), window(WINDOW_SIZE, WINDOW_SIZE), camera(2.6f, 0.68f, 0), // Constants selected for better view of the scene
   point_light_enabled(true), ambient_light_enabled(true), point_light_position(SHADER_VAL_POINT_POSITION),
   plane(NULL), light_source(NULL), target_texture(NULL), target_plane(NULL), filter(NO_FILTER), do_filtering(false)
 {
@@ -116,6 +119,8 @@ Application::Application()
         target_texture = create_texture(device, rect);
         edges_texture = create_texture(device, rect);
         normals_texture = create_texture(device, rect);
+        target_edges_pixel_shader = new PixelShader(device, TARGET_EDGES_PIXEL_SHADER_FILENAME);
+        target_blur_pixel_shader =  new PixelShader(device, TARGET_BLUR_PIXEL_SHADER_FILENAME);
     }
     // using catch(...) because every caught exception is rethrown
     catch(...)
@@ -261,41 +266,29 @@ void Application::render()
     // Draw target plane
     if( do_filtering )
     {
-//////////////////////////// to view edges ////////////////////////////////////////////////////////////
         render_scene( time );
         // Unset render target
         target_texture->unset_as_target();
         normals_texture->unset_as_target(1);
         // render edges
         set_filter( EDGE_FILTER );
-        target_plane->set_edges_shader();
+        target_plane->set_shaders_and_decl(false);
+        target_edges_pixel_shader->set();
+        edges_texture->set_as_target();
         normals_texture->set();
         target_plane->draw();
+        edges_texture->unset_as_target();
         normals_texture->unset();
+        // render blur
+        // set edges as texture
+        edges_texture->set( 1 );
+        set_filter( BLUR_FILTER );
+        target_texture->set();
+        target_blur_pixel_shader->set();
+        target_plane->draw();
 
-///////////////////////////// to view blur ///////////////////////////////////////////////////////////
-        //render_scene( time );
-        //// Unset render target
-        //target_texture->unset_as_target();
-        //// render edges
-        //set_filter( EDGE_FILTER );
-        //target_plane->set_edges_shader();
-        //edges_texture->set_as_target();
-        //target_texture->set();
-        //target_plane->draw();
-        //edges_texture->unset_as_target();
-        //target_texture->unset();
-        //// render blur
-        //// set edges as texture
-        //edges_texture->set( 1 );
-        //set_filter( BLUR_FILTER );
-        //target_texture->set();
-        //target_plane->set_shaders_and_decl(false);
-        //target_plane->draw();
-
-        //// unset edges as texture
-        //edges_texture->unset( 1 );
-////////////////////////////////////////////////////////////////////////////////////////
+        // unset edges as texture
+        edges_texture->unset( 1 );
     }
     else
     {
@@ -449,32 +442,16 @@ void Application::toggle_wireframe()
     }
 }
 
-void Application::delete_target_plane()
-{
-    if( NULL != target_plane)
-    {
-        delete target_plane;
-    }
-    target_plane = NULL;
-}
-
 void Application::release_interfaces()
 {
     release_interface( d3d );
     release_interface( device );
-    delete_target_plane();
-    if( NULL != target_texture)
-    {
-        delete target_texture;
-    }
-    if( NULL != edges_texture)
-    {
-        delete edges_texture;
-    }
-    if( NULL != normals_texture)
-    {
-        delete normals_texture;
-    }
+    delete_pointer( &target_plane );
+    delete_pointer( &target_texture );
+    delete_pointer( &edges_texture );
+    delete_pointer( &normals_texture );
+    delete_pointer( &target_blur_pixel_shader );
+    delete_pointer( &target_edges_pixel_shader );
 }
 
 Application::~Application()

@@ -15,7 +15,6 @@ namespace
     const char *LIGHT_SOURCE_SHADER_FILENAME = "light_source.vsh";
     const char *TARGET_VERTEX_SHADER_FILENAME = "target.vsh";
     const char *TARGET_PIXEL_SHADER_FILENAME = "target.psh";
-    const char *TARGET_EDGES_PIXEL_SHADER_FILENAME = "target_edge.psh";
     const char *DOUBLE_CHANNEL_PIXEL_SHADER_FILENAME = "double-channel.psh";
 
     const D3DCOLOR colors[] =
@@ -71,7 +70,6 @@ INT WINAPI wWinMain( HINSTANCE, HINSTANCE, LPWSTR, INT )
             VertexShader target_vertex_shader(app.get_device(), TARGET_VERTEX_SHADER_FILENAME);
             //PixelShader  no_pixel_shader(app.get_device());
             PixelShader  target_pixel_shader(app.get_device(), TARGET_PIXEL_SHADER_FILENAME);
-            PixelShader  target_edges_pixel_shader(app.get_device(), TARGET_EDGES_PIXEL_SHADER_FILENAME);
             PixelShader  double_channel_pixel_shader(app.get_device(), DOUBLE_CHANNEL_PIXEL_SHADER_FILENAME);
             
             // -------------------------- C y l i n d e r -----------------------
@@ -95,7 +93,7 @@ INT WINAPI wWinMain( HINSTANCE, HINSTANCE, LPWSTR, INT )
                                     CYLINDER_INDICES_COUNT,
                                     CYLINDER_INDICES_COUNT - 2,
                                     D3DXVECTOR3(0.5f, 0.5f, -height/2),
-                                    D3DXVECTOR3(0,0,0),
+                                    D3DXVECTOR3(0.1f,0,0),
                                     D3DXVECTOR3(0,0,-1));
 
             height = 2.3f;
@@ -189,7 +187,7 @@ INT WINAPI wWinMain( HINSTANCE, HINSTANCE, LPWSTR, INT )
             app.add_model(sphere);
             app.set_plane(plane);
             app.set_light_source_model(light_source);
-            app.create_target_plane(target_vertex_shader, target_pixel_shader, target_edges_pixel_shader,
+            app.create_target_plane(target_vertex_shader, target_pixel_shader,
                                     target_vertices, array_size(target_vertices),
                                     target_indices, array_size(target_indices));
 
