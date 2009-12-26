@@ -37,7 +37,7 @@ namespace
     const Index SPHERE_ALL_TESSELATED_VERTICES_COUNT = pyramid_vertices_count(SPHERE_TESSELATE_DEGREE); // per 8 tessellated triangles
     const DWORD SPHERE_ALL_TESSELATED_INDICES_COUNT = pyramid_indices_count(SPHERE_TESSELATE_DEGREE); // per 8 tessellated triangles
 
-    const DWORD LIGHT_SOURCE_TESSELATE_DEGREE = 10;
+    const DWORD LIGHT_SOURCE_TESSELATE_DEGREE = 20;
     const Index LIGHT_SOURCE_ALL_TESSELATED_VERTICES_COUNT = PLANES_PER_PYRAMID*tesselated_vertices_count(LIGHT_SOURCE_TESSELATE_DEGREE); // per 8 tessellated triangles
     const DWORD LIGHT_SOURCE_ALL_TESSELATED_INDICES_COUNT = PLANES_PER_PYRAMID*tesselated_indices_count(LIGHT_SOURCE_TESSELATE_DEGREE); // per 8 tessellated triangles
 

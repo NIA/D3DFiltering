@@ -110,8 +110,9 @@ Texture *create_texture(IDirect3DDevice9 *device, RECT const &rect)
 Application::Application()
 : d3d(NULL), device(NULL), window(WINDOW_SIZE, WINDOW_SIZE), camera(2.6f, 0.68f, 0), // Constants selected for better view of the scene
   point_light_enabled(true), ambient_light_enabled(true), point_light_position(SHADER_VAL_POINT_POSITION),
-  plane(NULL), light_source(NULL), target_texture(NULL), target_plane(NULL), filter(NO_FILTER), do_filtering(false),
-  double_blur(false)
+  plane(NULL), light_source(NULL), target_texture(NULL), target_plane(NULL), edges_texture(NULL),
+  normals_texture(NULL), second_blur_texture(NULL), target_blur_pixel_shader(NULL), target_edges_pixel_shader(NULL),
+  filter(NO_FILTER), do_filtering(false), double_blur(false)
 {
     try
     {
