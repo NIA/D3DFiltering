@@ -21,7 +21,6 @@ texld r1, t1, s0
 texld r2, t2, s0
 texld r3, t3, s0
 texld r4, t4, s0
-;;;;;;;;;;;texld r5, t5
 
 mul r0, r0, c0
 mul r1, r1, c1
