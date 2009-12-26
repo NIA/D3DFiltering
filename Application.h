@@ -94,6 +94,8 @@ private:
     void process_key(unsigned code);
 
     void draw_model(Model *model, float time, bool shadow);
+    void draw_target(Texture &texture);
+    void draw_target(Texture &texture, Texture &target, bool use_target = true);
     void set_filter(const float *filter);
     void render_scene(float time);
     void render();

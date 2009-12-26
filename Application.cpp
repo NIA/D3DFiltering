@@ -203,6 +203,26 @@ inline void Application::draw_model(Model *model, float time, bool shadow)
     model->draw();
 }
 
+// Draw target plane, with given texture on it
+inline void Application::draw_target(Texture &texture)
+{
+    texture.set( SAMPLER_INDEX_TARGET );
+    target_plane->draw();
+    texture.unset( SAMPLER_INDEX_TARGET );
+}
+
+// Draw target plane, with given texture on it, into given render target
+inline void Application::draw_target(Texture &texture, Texture &target, bool use_target /*= true*/)
+{
+    if( use_target )
+        target.set_as_target( TARGET_INDEX_COLOR );
+    
+    draw_target(texture);
+    
+    if( use_target )
+        target.unset_as_target( TARGET_INDEX_COLOR );
+}
+
 void Application::render_scene(float time)
 {
     // Draw Light Source
@@ -274,54 +294,28 @@ void Application::render()
         target_plane->set_shaders_and_decl(false);
         target_edges_pixel_shader->set();
         
-        edges_texture->set_as_target( TARGET_INDEX_COLOR );
-        normals_texture->set( SAMPLER_INDEX_TARGET );
-        target_plane->draw();
-        edges_texture->unset_as_target( TARGET_INDEX_COLOR );
-        normals_texture->unset( SAMPLER_INDEX_TARGET );
+        draw_target( *normals_texture, *edges_texture );
         
         // set edges as texture
         edges_texture->set( SAMPLER_INDEX_EDGES );
+        // set up blur
+        set_filter( BLUR_FILTER );
+        target_blur_pixel_shader->set();
+        // do rendering
         if( multiple_blur_factor != 0 )
         {
             // - - - - If multiple filtering enabled - - - - - 
-            set_filter( BLUR_FILTER );
-            target_blur_pixel_shader->set();
             for( unsigned i = 0; i < multiple_blur_factor; ++i )
             {
-                // render blur from target_texture into second_blur_texture
-                second_blur_texture->set_as_target( TARGET_INDEX_COLOR );
-                target_texture->set( SAMPLER_INDEX_TARGET );
-                target_plane->draw();
-                target_texture->unset( SAMPLER_INDEX_TARGET );
-                second_blur_texture->unset_as_target( TARGET_INDEX_COLOR );
-                
-                // render blur from second_blur_texture into target_texture (or, finally, into backbuffer)
-                if( i != multiple_blur_factor - 1 )
-                {
-                    // if not the last step (because on last step we just render to backbuffer)
-                    target_texture->set_as_target( TARGET_INDEX_COLOR );
-                }
-                second_blur_texture->set( SAMPLER_INDEX_TARGET );
-                target_plane->draw();
-                second_blur_texture->unset( SAMPLER_INDEX_TARGET );
-                if( i != multiple_blur_factor - 1 )
-                {
-                    // if not the last step (because on last step we just render to backbuffer)
-                    target_texture->unset_as_target( TARGET_INDEX_COLOR );
-                }
+                draw_target( *target_texture, *second_blur_texture );
+                // use target only if not the last step (because on last step we just render to backbuffer)
+                draw_target( *second_blur_texture, *target_texture, i != multiple_blur_factor - 1 );
             }
         }
         else
         {
             // - - - - Else - single filtering - - - - - 
-            // render blur
-            target_texture->set( SAMPLER_INDEX_TARGET );
-            set_filter( BLUR_FILTER );
-            
-            target_blur_pixel_shader->set();
-            target_plane->draw();
-            target_texture->unset( SAMPLER_INDEX_TARGET );
+            draw_target( *target_texture );
         }
 
         // unset edges as texture
