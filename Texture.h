@@ -6,7 +6,7 @@ class Texture
 private:
     IDirect3DDevice9 *device;
     IDirect3DTexture9 *texture;
-    IDirect3DSurface9 *old_surfaces[2];
+    IDirect3DSurface9 *old_surface;
 
     unsigned width, height;
 public:
