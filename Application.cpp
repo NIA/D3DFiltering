@@ -112,7 +112,7 @@ Application::Application()
   point_light_enabled(true), ambient_light_enabled(true), point_light_position(SHADER_VAL_POINT_POSITION),
   plane(NULL), light_source(NULL), target_texture(NULL), target_plane(NULL), edges_texture(NULL),
   normals_texture(NULL), second_blur_texture(NULL), target_blur_pixel_shader(NULL), target_edges_pixel_shader(NULL),
-  filter(NO_FILTER), do_filtering(false), double_blur(false)
+  filter(NO_FILTER), do_filtering(false), multiple_blur_factor(0)
 {
     try
     {
@@ -268,20 +268,33 @@ void Application::render()
         normals_texture->unset();
         // set edges as texture
         edges_texture->set( 1 );
-        if( double_blur )
+        if( multiple_blur_factor != 0 )
         {
             set_filter( BLUR_FILTER );
             target_blur_pixel_shader->set();
-            // render blur
-            second_blur_texture->set_as_target();
-            target_texture->set();
-            target_plane->draw();
-            second_blur_texture->unset_as_target();
-            target_texture->unset();
-            // render blur
-            second_blur_texture->set();
-            target_plane->draw();
-            second_blur_texture->unset();
+            for( unsigned i = 0; i < multiple_blur_factor; ++i )
+            {
+                // render blur
+                second_blur_texture->set_as_target();
+                target_texture->set();
+                target_plane->draw();
+                target_texture->unset();
+                second_blur_texture->unset_as_target();
+                // render blur
+                if( i != multiple_blur_factor - 1 )
+                {
+                    // if not the last step
+                    target_texture->set_as_target();
+                }
+                second_blur_texture->set();
+                target_plane->draw();
+                second_blur_texture->unset();
+                if( i != multiple_blur_factor - 1 )
+                {
+                    // if not the last step
+                    target_texture->unset_as_target();
+                }
+            }
         }
         else
         {
@@ -389,11 +402,27 @@ void Application::process_key(unsigned code)
         break;
     case '1':
         do_filtering = true;
-        double_blur = false;
+        multiple_blur_factor = 0;
         break;
     case '2':
         do_filtering = true;
-        double_blur = true;
+        multiple_blur_factor = 1;
+        break;
+    case '3':
+        do_filtering = true;
+        multiple_blur_factor = 2;
+        break;
+    case '4':
+        do_filtering = true;
+        multiple_blur_factor = 4;
+        break;
+    case '5':
+        do_filtering = true;
+        multiple_blur_factor = 8;
+        break;
+    case '6':
+        do_filtering = true;
+        multiple_blur_factor = 16;
         break;
     }
 }

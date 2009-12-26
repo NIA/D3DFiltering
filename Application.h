@@ -44,7 +44,7 @@ private:
 
     const float *filter;
     bool do_filtering;
-    bool double_blur;
+    unsigned multiple_blur_factor; // if == N, then 2N blur is applied
 
     // Initialization steps:
     void init_device();
