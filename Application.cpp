@@ -98,6 +98,15 @@ namespace
         7, // ... ( 0,  1)
     };
 
+    enum TargetIndex
+    {
+        TARGET_INDEX_COLOR,
+        TARGET_INDEX_NORMALS,
+    };
+    const unsigned SAMPLER_INDEX_MODELS = 0;
+    const unsigned SAMPLER_INDEX_TARGET = 0;
+    const unsigned SAMPLER_INDEX_EDGES = 1;
+
     const char *TARGET_EDGES_PIXEL_SHADER_FILENAME = "target_edge.psh";
     const char *TARGET_BLUR_PIXEL_SHADER_FILENAME = "target_blur.psh";
 }
@@ -190,7 +199,7 @@ inline void Application::draw_model(Model *model, float time, bool shadow)
     
     // Draw
     model->set_shaders_and_decl(shadow);
-    model->set_textures(shadow);
+    model->set_textures(shadow, SAMPLER_INDEX_MODELS);
     model->draw();
 }
 
@@ -245,84 +254,88 @@ void Application::render()
     set_shader_vector( SHADER_REG_SHADOW_ATTENUATION, SHADER_VAL_SHADOW_ATTENUATION );
 
     // Set render target
-    target_texture->unset();
-    target_texture->set_as_target();
-    normals_texture->set_as_target(1);
+    target_texture->unset( SAMPLER_INDEX_TARGET );
+    target_texture->set_as_target( TARGET_INDEX_COLOR );
+    normals_texture->set_as_target( TARGET_INDEX_NORMALS );
     check_render( device->Clear( 0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, BACKGROUND_COLOR, 1.0f, 0 ) );
+
+    // Render scene (color into target #0, normals into target #1)
+    render_scene( time );
+    // Unset render target
+    target_texture->unset_as_target( TARGET_INDEX_COLOR );
+    normals_texture->unset_as_target( TARGET_INDEX_NORMALS );
 
     // Draw target plane
     if( do_filtering )
     {
-        render_scene( time );
-        // Unset render target
-        target_texture->unset_as_target();
-        normals_texture->unset_as_target(1);
+        // - - - - If filtering enabled - - - - - 
         // render edges
         set_filter( EDGE_FILTER );
         target_plane->set_shaders_and_decl(false);
         target_edges_pixel_shader->set();
-        edges_texture->set_as_target();
-        normals_texture->set();
+        
+        edges_texture->set_as_target( TARGET_INDEX_COLOR );
+        normals_texture->set( SAMPLER_INDEX_TARGET );
         target_plane->draw();
-        edges_texture->unset_as_target();
-        normals_texture->unset();
+        edges_texture->unset_as_target( TARGET_INDEX_COLOR );
+        normals_texture->unset( SAMPLER_INDEX_TARGET );
+        
         // set edges as texture
-        edges_texture->set( 1 );
+        edges_texture->set( SAMPLER_INDEX_EDGES );
         if( multiple_blur_factor != 0 )
         {
+            // - - - - If multiple filtering enabled - - - - - 
             set_filter( BLUR_FILTER );
             target_blur_pixel_shader->set();
             for( unsigned i = 0; i < multiple_blur_factor; ++i )
             {
-                // render blur
-                second_blur_texture->set_as_target();
-                target_texture->set();
+                // render blur from target_texture into second_blur_texture
+                second_blur_texture->set_as_target( TARGET_INDEX_COLOR );
+                target_texture->set( SAMPLER_INDEX_TARGET );
                 target_plane->draw();
-                target_texture->unset();
-                second_blur_texture->unset_as_target();
-                // render blur
+                target_texture->unset( SAMPLER_INDEX_TARGET );
+                second_blur_texture->unset_as_target( TARGET_INDEX_COLOR );
+                
+                // render blur from second_blur_texture into target_texture (or, finally, into backbuffer)
                 if( i != multiple_blur_factor - 1 )
                 {
-                    // if not the last step
-                    target_texture->set_as_target();
+                    // if not the last step (because on last step we just render to backbuffer)
+                    target_texture->set_as_target( TARGET_INDEX_COLOR );
                 }
-                second_blur_texture->set();
+                second_blur_texture->set( SAMPLER_INDEX_TARGET );
                 target_plane->draw();
-                second_blur_texture->unset();
+                second_blur_texture->unset( SAMPLER_INDEX_TARGET );
                 if( i != multiple_blur_factor - 1 )
                 {
-                    // if not the last step
-                    target_texture->unset_as_target();
+                    // if not the last step (because on last step we just render to backbuffer)
+                    target_texture->unset_as_target( TARGET_INDEX_COLOR );
                 }
             }
         }
         else
         {
+            // - - - - Else - single filtering - - - - - 
             // render blur
-            target_texture->set();
+            target_texture->set( SAMPLER_INDEX_TARGET );
             set_filter( BLUR_FILTER );
+            
             target_blur_pixel_shader->set();
             target_plane->draw();
-            target_texture->unset();
+            target_texture->unset( SAMPLER_INDEX_TARGET );
         }
 
         // unset edges as texture
-        edges_texture->unset( 1 );
+        edges_texture->unset( SAMPLER_INDEX_EDGES );
     }
     else
     {
-        render_scene( time );
-        // Unset render target
-        target_texture->unset_as_target();
-        normals_texture->unset_as_target(1);
+        // - - - - Else - no filtering - - - - - 
         set_filter( NO_FILTER );
         draw_model( target_plane, time, false );
     }
 
     // End the scene
     check_render( device->EndScene() );
-    
-    // Present the backbuffer contents to the display
     check_render( device->Present( NULL, NULL, NULL, NULL ) );
 }
 
